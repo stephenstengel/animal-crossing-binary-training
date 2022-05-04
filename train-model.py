@@ -18,6 +18,7 @@ from tqdm import tqdm
 
 from models import createHarlowModel
 from keras import callbacks
+from keras import backend
 
 print("Done!")
 
@@ -58,7 +59,6 @@ def main(args):
 	# test_ds is a dataset of unmodified images for testing the model after training.
 	train_ds, val_ds, test_ds = getDatasets(TRAIN_DIRECTORY, VAL_DIRECTORY, TEST_DIRECTORY)
 	
-	images_test, labels_test = extractTest(test_ds)
 	
 	if TEST_PRINTING:
 		printSample(test_ds)
@@ -72,26 +72,105 @@ def main(args):
 	
 	#make output folders for each model
 	for model in modelList:
+		print("Training model...")
 		myHistory = trainModel(model, train_ds, val_ds, CHECKPOINT_FOLDER)
+		print("Creating graphs of training history...")
 		saveGraphs(model, myHistory, test_ds)
 		
-		
-		# model.predict() makes an array of probabilities that a certian class is correct.
-		# By saving the scores from the test_ds, we can see which images
-		# cause false-positives, false-negatives, true-positives, and true-negatives
-		# ~ testScores = model.predict(test_ds, verbose = True)
-		# ~ printTwoNumArraysToFile(testScores, labels_test)
-		
-		#Get the list of class predictions from the probability scores.
-		
-		#Calculate TPR, FPR, TNR, FNR
-		
-		#Print the false positive, false negative images.
+		#workin on this.
+		evaluateLabels(test_ds, model)
 		
 		
 		
 
 	return 0
+
+
+# model.predict() makes an array of probabilities that a certian class is correct.
+# By saving the scores from the test_ds, we can see which images
+# cause false-positives, false-negatives, true-positives, and true-negatives
+def evaluateLabels(test_ds, model):
+	print("Getting predictions of test data...")
+	testScores = model.predict(test_ds, verbose = True)
+	actual_test_labels = extractLabels(test_ds)
+	
+	#Get the list of class predictions from the probability scores.
+	p_test_labels = getPredictedLabels(testScores)
+	
+	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels) # debug function
+	
+	#Calculate TPR, FPR, TNR, FNR
+	#could make a mask of all same with binary elements. then sum reduce
+	tp_sum = getTPsum(actual_test_labels, p_test_labels)
+	print(tp_sum)
+	
+	tn_sum = getTNsum(actual_test_labels, p_test_labels)
+	print(tn_sum)
+	fp_sum = getFPsum(actual_test_labels, p_test_labels)
+	print(fp_sum)
+	fn_sum = getFNsum(actual_test_labels, p_test_labels)
+	print(fn_sum)
+	
+	
+	#Print the false positive, false negative images.
+
+
+# have to think how to do the mask to go very fast.
+# i'll just do a loop for now
+def getTPsum(actual_test_labels, p_test_labels):
+	sumList = []
+	for i in range(len(actual_test_labels)):
+		if (actual_test_labels[i] == CLASS_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
+			sumList.append(1)
+		else:
+			sumList.append(0)
+	
+	sumArr = np.asarray(sumList)
+	
+	return np.asarray(backend.sum(sumArr))
+
+
+def getTNsum(actual_test_labels, p_test_labels):
+	sumList = []
+	for i in range(len(actual_test_labels)):
+		if (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
+			sumList.append(1)
+		else:
+			sumList.append(0)
+	
+	sumArr = np.asarray(sumList)
+	
+	return np.asarray(backend.sum(sumArr))
+	
+	
+
+
+def getFPsum(actual_test_labels, p_test_labels):
+	sumList = []
+	for i in range(len(actual_test_labels)):
+		if (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(1)
+		else:
+			sumList.append(0)
+	
+	sumArr = np.asarray(sumList)
+	
+	return np.asarray(backend.sum(sumArr))
+
+
+def getFNsum(actual_test_labels, p_test_labels):
+	sumList = []
+	for i in range(len(actual_test_labels)):
+		if (actual_test_labels[i] == CLASS_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(1)
+		else:
+			sumList.append(0)
+	
+	sumArr = np.asarray(sumList)
+	
+	return np.asarray(backend.sum(sumArr))
+	
+	
 
 
 # Creates the necessary directories.
@@ -115,9 +194,10 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 	
 	return model.fit(
 			train_ds,
-			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
+			steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			epochs = 5,
+			# ~ epochs = 5,
+			epochs = 1,
 			validation_data = val_ds)
 
 
@@ -182,42 +262,39 @@ def printSample(in_ds):
 	plt.clf()
 
 
-#an attempt to extract the images and labels from the tensorflow dataset structure.
-def extractTest(test_ds):
+# Extract the labels from the tensorflow dataset structure.
+def extractLabels(in_ds):
 	print("Trying to get list out of test dataset...")
 	lablist = []
-	imglist = []
-	for batch in tqdm(test_ds):
-		imglist.extend( np.asarray(batch[0]) )
+	for batch in tqdm(in_ds):
 		lablist.extend( np.asarray(batch[1]) )
-	imglist = np.asarray(imglist)
-	lablist = np.asarray(lablist)
-	print("len imglist: " + str(len(imglist)))
-	# ~ print(imglist)
-	print("len lablist: " + str(len(lablist)))
-	print(lablist)
+	
+	return np.asarray(lablist)
 	
 	
-	#try to print the images. success
-	# ~ plt.clf()
-	# ~ for i in range(len(lablist)):
-		# ~ myImg = imglist[i]
-		# ~ myLabel = lablist[i]
-		# ~ plt.imshow(myImg, cmap="gray")
-		# ~ plt.title( CLASS_NAMES_LIST_STR[ myLabel ]  )
-		# ~ plt.axis("off")
-		# ~ plt.show()
-		# ~ plt.clf()
-	# ~ plt.clf()
-	
-	return imglist, lablist
-	
-	
-def printTwoNumArraysToFile(predictedScores, originalLabels):
-	with open("testArrays", "w") as outFile:
+def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels):
+	with open("predictionlists.txt", "w") as outFile:
 		for i in range(len(predictedScores)):
-			thisString = "predicted score: " + str(predictedScores[i]) + "\tvalue_original " + str(originalLabels[i]) + "\n"
+			thisScores = predictedScores[i]
+			intScore = str(round(thisScores[CLASS_INTERESTING], 4))
+			notScore = str(round(thisScores[CLASS_NOT_INTERESTING], 4))
+			
+			thisString = \
+			"predicted score int,not: [" + intScore + ", " + notScore + "]" \
+			+ "\tactual label " + str(originalLabels[i]) \
+			+ "\tpredicted label" + str(predictedLabels[i]) + "\n"
 			outFile.write(thisString)	
+
+def getPredictedLabels(testScores):
+	outList = []
+	for score in testScores:
+		if score[CLASS_INTERESTING] >= score[CLASS_NOT_INTERESTING]:
+			outList.append(CLASS_INTERESTING)
+		else:
+			outList.append(CLASS_NOT_INTERESTING)
+	
+	return np.asarray(outList)
+			
 
 
 if __name__ == '__main__':
