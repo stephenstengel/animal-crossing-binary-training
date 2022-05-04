@@ -102,17 +102,45 @@ def evaluateLabels(test_ds, model):
 	#Calculate TPR, FPR, TNR, FNR
 	#could make a mask of all same with binary elements. then sum reduce
 	tp_sum = getTPsum(actual_test_labels, p_test_labels)
-	print(tp_sum)
-	
+	print("truePos: " + str(tp_sum))
 	tn_sum = getTNsum(actual_test_labels, p_test_labels)
-	print(tn_sum)
+	print("true negative: " + str(tn_sum))
 	fp_sum = getFPsum(actual_test_labels, p_test_labels)
-	print(fp_sum)
+	print("false pos: " + str(fp_sum))
 	fn_sum = getFNsum(actual_test_labels, p_test_labels)
-	print(fn_sum)
+	print("false negative: " + str(fn_sum))
+	
+	accuracy = getAcc(tp_sum, tn_sum, fp_sum, fn_sum)
+	print("accuracy: " + str(accuracy))
+	err = getErrRate(tp_sum, tn_sum, fp_sum, fn_sum)
+	print("error rate: " + str(err))
+	
+	tpr = getTPR(tp_sum, fp_sum)
+	print("True Positive Rate: " + str(tpr))
+	
+	tNr = getTNR(tn_sum, fp_sum)
+	print("True Negative Rate: " + str(tNr))
 	
 	
 	#Print the false positive, false negative images.
+
+
+def getAcc(tp, tn, fp, fn):
+	top = tp + tn
+	bottom = tp + fp + tn + fn
+	
+	return top / bottom
+
+def getErrRate(tp, tn, fp, fn):
+	return 1 - getAcc(tp, tn, fp, fn)
+
+
+def getTPR(tp, fp):
+	return tp / (tp + fp)
+	
+
+def getTNR(tn, fp):
+	return tn / (tn + fp)
 
 
 # have to think how to do the mask to go very fast.
@@ -194,10 +222,10 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 	
 	return model.fit(
 			train_ds,
-			steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
+			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			# ~ epochs = 5,
-			epochs = 1,
+			epochs = 5,
+			# ~ epochs = 1,
 			validation_data = val_ds)
 
 
