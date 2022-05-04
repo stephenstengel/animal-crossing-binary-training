@@ -73,14 +73,14 @@ def main(args):
 	#make output folders for each model
 	for model in modelList:
 		myHistory = trainModel(model, train_ds, val_ds, CHECKPOINT_FOLDER)
-		examineResults(model, myHistory, test_ds)
+		saveGraphs(model, myHistory, test_ds)
 		
 		
 		# model.predict() makes an array of probabilities that a certian class is correct.
 		# By saving the scores from the test_ds, we can see which images
 		# cause false-positives, false-negatives, true-positives, and true-negatives
-		testScores = model.predict(test_ds, verbose = True)
-		printTwoNumArraysToFile(testScores, labels_test)
+		# ~ testScores = model.predict(test_ds, verbose = True)
+		# ~ printTwoNumArraysToFile(testScores, labels_test)
 		
 		#Get the list of class predictions from the probability scores.
 		
@@ -121,13 +121,17 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			validation_data = val_ds)
 
 
-def examineResults(model, myHistory, test_ds):
+def saveGraphs(model, myHistory, test_ds):
 	evalLoss, evalAccuracy = model.evaluate(test_ds)
+
+	plt.clf()
 	accuracy = myHistory.history['accuracy']
 	val_accuracy = myHistory.history["val_accuracy"]
-
 	
 	epochs = range(1, len(accuracy) + 1)
+	accCap = round(evalAccuracy, 4)
+	captionText = "Accuracy on test data: {}".format(accCap)
+	plt.figtext(0.5, 0.01, captionText, wrap=True, horizontalalignment='center', fontsize=12)
 	plt.plot(epochs, accuracy, "o", label="Training accuracy")
 	plt.plot(epochs, val_accuracy, "^", label="Validation accuracy")
 	plt.title("Model Accuracy vs Epochs")
@@ -135,10 +139,15 @@ def examineResults(model, myHistory, test_ds):
 	plt.xlabel("epoch")
 	plt.legend()
 	plt.savefig("trainvalacc.png")
+
 	plt.clf()
 	
 	loss = myHistory.history["loss"]
 	val_loss = myHistory.history["val_loss"]
+	
+	lossCap = round(evalLoss, 4)
+	captionText = "Loss on test data: {}".format(lossCap)
+	plt.figtext(0.5, 0.01, captionText, wrap=True, horizontalalignment='center', fontsize=12)
 	plt.plot(epochs, loss, "o", label="Training loss")
 	plt.plot(epochs, val_loss, "^", label="Validation loss")
 	plt.title("Training and validation loss vs Epochs")
@@ -147,10 +156,6 @@ def examineResults(model, myHistory, test_ds):
 	plt.legend()
 	plt.savefig("trainvalloss.png")
 	plt.clf()
-	
-	print("\nEvaluation on Test Data: Loss = {}, accuracy = {}".format(round(evalLoss, 4), round(evalAccuracy, 4)))
-	
-
 
 
 def getDatasets(trainDir, valDir, testDir):

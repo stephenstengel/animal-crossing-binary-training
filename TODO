@@ -4,3 +4,13 @@ TODO:
 	Add more models.
 	
 	Add a free licence.
+
+	Calculate TPR, TNR, FPR, FNR
+	
+	Make examples of error images
+	
+	Save weights to a file.
+	
+	Load our weights from a file.
+	
+	
