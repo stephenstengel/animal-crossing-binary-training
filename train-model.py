@@ -58,7 +58,7 @@ def main(args):
 	# test_ds is a dataset of unmodified images for testing the model after training.
 	train_ds, val_ds, test_ds = getDatasets(TRAIN_DIRECTORY, VAL_DIRECTORY, TEST_DIRECTORY)
 	
-	extractTest(test_ds)
+	images_test, labels_test = extractTest(test_ds)
 	
 	if TEST_PRINTING:
 		printSample(test_ds)
@@ -73,9 +73,23 @@ def main(args):
 	#make output folders for each model
 	for model in modelList:
 		myHistory = trainModel(model, train_ds, val_ds, CHECKPOINT_FOLDER)
+		examineResults(model, myHistory, test_ds)
+		
+		
+		# model.predict() makes an array of probabilities that a certian class is correct.
+		# By saving the scores from the test_ds, we can see which images
+		# cause false-positives, false-negatives, true-positives, and true-negatives
 		testScores = model.predict(test_ds, verbose = True)
-		evalLoss, evalAccuracy = model.evaluate(test_ds)
-		examineResults(model, myHistory, testScores, evalLoss, evalAccuracy)
+		printTwoNumArraysToFile(testScores, labels_test)
+		
+		#Get the list of class predictions from the probability scores.
+		
+		#Calculate TPR, FPR, TNR, FNR
+		
+		#Print the false positive, false negative images.
+		
+		
+		
 
 	return 0
 
@@ -101,28 +115,40 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 	
 	return model.fit(
 			train_ds,
-			steps_per_epoch = 20, #to shorten training for testing purposes. I got no gpu qq.
+			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
 			epochs = 5,
 			validation_data = val_ds)
 
 
-def examineResults(model, myHistory, testScores, evalLoss, evalAccuracy):
+def examineResults(model, myHistory, test_ds):
+	evalLoss, evalAccuracy = model.evaluate(test_ds)
 	accuracy = myHistory.history['accuracy']
+	val_accuracy = myHistory.history["val_accuracy"]
+
+	
 	epochs = range(1, len(accuracy) + 1)
 	plt.plot(epochs, accuracy, "o", label="Training accuracy")
+	plt.plot(epochs, val_accuracy, "^", label="Validation accuracy")
 	plt.title("Model Accuracy vs Epochs")
 	plt.ylabel("accuracy")
 	plt.xlabel("epoch")
 	plt.legend()
-	plt.savefig("train-history.png")
+	plt.savefig("trainvalacc.png")
 	plt.clf()
 	
-	print("\nEvaluation on Test Data: Loss = {}, accuracy = {}".format(round(evalLoss, 5), round(evalAccuracy, 5)))
+	loss = myHistory.history["loss"]
+	val_loss = myHistory.history["val_loss"]
+	plt.plot(epochs, loss, "o", label="Training loss")
+	plt.plot(epochs, val_loss, "^", label="Validation loss")
+	plt.title("Training and validation loss vs Epochs")
+	plt.ylabel("loss")
+	plt.xlabel("epoch")
+	plt.legend()
+	plt.savefig("trainvalloss.png")
+	plt.clf()
 	
-	print("now scores object from model.predict...")
-	print("hehe: %.2f%%" % (testScores[1]))
-	print("%s: %.2f%%" % (model.metrics_names[1], testScores[1]))
+	print("\nEvaluation on Test Data: Loss = {}, accuracy = {}".format(round(evalLoss, 4), round(evalAccuracy, 4)))
 	
 
 
@@ -151,6 +177,7 @@ def printSample(in_ds):
 	plt.clf()
 
 
+#an attempt to extract the images and labels from the tensorflow dataset structure.
 def extractTest(test_ds):
 	print("Trying to get list out of test dataset...")
 	lablist = []
@@ -158,42 +185,34 @@ def extractTest(test_ds):
 	for batch in tqdm(test_ds):
 		imglist.extend( np.asarray(batch[0]) )
 		lablist.extend( np.asarray(batch[1]) )
-	# ~ imglist = np.asarray(imglist)
-	# ~ lablist = np.asarray(lablist)
+	imglist = np.asarray(imglist)
+	lablist = np.asarray(lablist)
 	print("len imglist: " + str(len(imglist)))
 	# ~ print(imglist)
 	print("len lablist: " + str(len(lablist)))
 	print(lablist)
 	
 	
-	#try to print the images.
-	plt.clf()
-	images = []
-	labels = []
-	for batch in test_ds:
-		imgArr = np.asarray(batch[0])
-		labelArr = np.asarray(batch[1])
-		for i in range(len(imgArr)):
-			thisImg = imgArr[i]
-			# ~ thisImg = img_as_uint(thisImg)
-			thisLabel = labelArr[i]
-			
-			images.append(thisImg)
-			labels.append(thisLabel)
-
-	# ~ plt.figure(figsize=(10, 10))
-	for i in range(len(images)):
-		myImg = images[i]
-		myLabel = labels[i]
-		plt.imshow(myImg, cmap="gray")
-		plt.title( CLASS_NAMES_LIST_STR[ myLabel ]  )
-		plt.axis("off")
-		plt.show()
-		plt.clf()
-	plt.clf()
+	#try to print the images. success
+	# ~ plt.clf()
+	# ~ for i in range(len(lablist)):
+		# ~ myImg = imglist[i]
+		# ~ myLabel = lablist[i]
+		# ~ plt.imshow(myImg, cmap="gray")
+		# ~ plt.title( CLASS_NAMES_LIST_STR[ myLabel ]  )
+		# ~ plt.axis("off")
+		# ~ plt.show()
+		# ~ plt.clf()
+	# ~ plt.clf()
+	
+	return imglist, lablist
 	
 	
-	sys.exit(-2)
+def printTwoNumArraysToFile(predictedScores, originalLabels):
+	with open("testArrays", "w") as outFile:
+		for i in range(len(predictedScores)):
+			thisString = "predicted score: " + str(predictedScores[i]) + "\tvalue_original " + str(originalLabels[i]) + "\n"
+			outFile.write(thisString)	
 
 
 if __name__ == '__main__':

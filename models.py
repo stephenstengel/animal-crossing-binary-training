@@ -6,9 +6,10 @@
 #  Copyright 2022 Stephen Stengel <stephen.stengel@cwu.edu> and friends
 #  
 
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
-from keras.losses import BinaryCrossentropy
+from keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
 
 def createHarlowModel(shapeTupple):
 	hModel = Sequential(
@@ -22,17 +23,13 @@ def createHarlowModel(shapeTupple):
 			MaxPooling2D(pool_size=(2, 2)),
 			Flatten(),
 			Dense(128, activation='relu'),
-			Dense(1)
+			Dense(2, activation='softmax') #Needed for sparse categorical crossentropy
 		]
 	)
 	
-	# ~ hModel.compile(
-		# ~ optimizer='adam', # default learning rate is 0.001
-		# ~ loss='sparse_categorical_crossentropy',
-		# ~ metrics=['accuracy'])
 	hModel.compile(
-		optimizer='adam', # default learning rate is 0.001
-		loss = BinaryCrossentropy(from_logits=True),
+		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
+		loss = SparseCategoricalCrossentropy(from_logits=False),
 		metrics=['accuracy'])
 	
 	
