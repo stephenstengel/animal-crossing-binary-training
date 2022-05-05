@@ -52,42 +52,40 @@ def main(args):
 	deleteDirectories(listOfFoldersToDELETE)
 	
 	# Folders to save model tests
-	harlowFolder = "./harlow/"
 	simpleFolder = "./simple/"
-	modelBaseFolders = [harlowFolder, simpleFolder] #Same order as the modelList below!
-	
-	listOfFoldersToMake = [harlowFolder, simpleFolder]
-	makeDirectories(listOfFoldersToMake)
-	
+	harlowFolder = "./harlow/"
+	modelBaseFolders = [simpleFolder, harlowFolder] #Same order as the modelList below!
+	makeDirectories(modelBaseFolders)
 	
 	# train_ds is for training the model.
 	# val_ds is for validation during training.
 	# test_ds is a dataset of unmodified images for testing the model after training.
 	train_ds, val_ds, test_ds = getDatasets(TRAIN_DIRECTORY, VAL_DIRECTORY, TEST_DIRECTORY)
 	
-	
 	if TEST_PRINTING:
 		printSample(test_ds)
 	
 	shape = IMG_SHAPE_TUPPLE
-	modelList = [createHarlowModel(shape), simpleModel(shape)]
-	
-	for model in modelList:
-		model.summary()
-	
+	modelList = [simpleModel(shape), createHarlowModel(shape)]
+
+	# This for loop can be compartmentalized into helper functions.
+	# There will be one wrapper function to perform k-folds
+	# something like performExperiment -> performKfolds -> contents of this for loop.
 	for i in range(len(modelList)):
-		print("Training model...")
+		thisModel = modelList[i]
+		thisModel.summary()
 		thisOutputFolder = modelBaseFolders[i]
+		print("Training model: " + thisOutputFolder)
 		thisCheckpointFolder = thisOutputFolder + "checkpoint/"
 		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder]
 		makeDirectories(foldersForThisModel)
 		
-		myHistory = trainModel(model, train_ds, val_ds, thisCheckpointFolder)
+		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder)
 		print("Creating graphs of training history...")
-		strAcc, strLoss = saveGraphs(model, myHistory, test_ds, thisOutputFolder)
+		strAcc, strLoss = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
 		
 		#workin on this.
-		stringToPrint = evaluateLabels(test_ds, model, thisOutputFolder)
+		stringToPrint = evaluateLabels(test_ds, thisModel, thisOutputFolder)
 		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
 		stringToPrint += strAcc + "\n"
 		stringToPrint += strLoss + "\n"
