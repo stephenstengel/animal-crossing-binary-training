@@ -16,7 +16,7 @@ import shutil
 
 from tqdm import tqdm
 
-from models import createHarlowModel
+from models import createHarlowModel, simpleModel
 from keras import callbacks
 from keras import backend
 
@@ -53,9 +53,10 @@ def main(args):
 	
 	# Folders to save model tests
 	harlowFolder = "./harlow/"
-	modelBaseFolders = [harlowFolder] #Same order as the modelList below!
+	simpleFolder = "./simple/"
+	modelBaseFolders = [harlowFolder, simpleFolder] #Same order as the modelList below!
 	
-	listOfFoldersToMake = [harlowFolder]
+	listOfFoldersToMake = [harlowFolder, simpleFolder]
 	makeDirectories(listOfFoldersToMake)
 	
 	
@@ -69,7 +70,7 @@ def main(args):
 		printSample(test_ds)
 	
 	shape = IMG_SHAPE_TUPPLE
-	modelList = [createHarlowModel(shape)]
+	modelList = [createHarlowModel(shape), simpleModel(shape)]
 	
 	for model in modelList:
 		model.summary()
@@ -255,8 +256,8 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			epochs = 150,
-			# ~ epochs = 5,
+			# ~ epochs = 150,
+			epochs = 5,
 			# ~ epochs = 1,
 			validation_data = val_ds)
 
