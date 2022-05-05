@@ -13,6 +13,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 import shutil
+import time
 
 from tqdm import tqdm
 
@@ -51,9 +52,13 @@ def main(args):
 	listOfFoldersToDELETE = []
 	deleteDirectories(listOfFoldersToDELETE)
 	
+	#base folder for this run
+	ts = time.localtime()
+	timeStr = "./%d-%d-%d-%d-%d-%d/" % (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec)
+	
 	# Folders to save model tests
-	simpleFolder = "./simple/"
-	harlowFolder = "./harlow/"
+	simpleFolder = timeStr + "simple/"
+	harlowFolder = timeStr + "harlow/"
 	modelBaseFolders = [simpleFolder, harlowFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
@@ -79,6 +84,9 @@ def main(args):
 		thisCheckpointFolder = thisOutputFolder + "checkpoint/"
 		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder]
 		makeDirectories(foldersForThisModel)
+		
+		#save copy of source code that created the output
+		os.system("cp train-model.py   " + thisOutputFolder + "train-model.py")
 		
 		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder)
 		print("Creating graphs of training history...")
