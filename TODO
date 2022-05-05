@@ -1,13 +1,21 @@
 TODO:
 	Add math for finding steps per epoch; not sure if it's automatic.
+	# Update: It is automatic, but only for tensorflow datasets; if the
+	data is loaded into a numpy array, it needs to be calculated
+	manually.
+	
+	Get folder locations and experiment parameters from a text file if
+	it exists-- else use hard-coded defaults like it is now.
 
-	Pass nearly all global values into functions through main
+	Pass nearly all global values into functions through main (most of
+	them are fine though)
 
 	Get image size from text file. Or just look at the image.
 	
 	Add more models.
 	
-	Add a free licence.
+	Add a free licence. I'm thinking MIT. So other people can take the
+	code if they want.
 
 	Make examples of error images
 	
