@@ -75,11 +75,14 @@ def main(args):
 		print("Training model...")
 		myHistory = trainModel(model, train_ds, val_ds, CHECKPOINT_FOLDER)
 		print("Creating graphs of training history...")
-		saveGraphs(model, myHistory, test_ds)
+		strAcc, strLoss = saveGraphs(model, myHistory, test_ds)
 		
 		#workin on this.
 		evaluateLabels(test_ds, model)
 		
+		print("Accuracy and loss according to tensorflow model.evaluate(): ")
+		print(strAcc)
+		print(strLoss)
 		
 		
 
@@ -115,11 +118,14 @@ def evaluateLabels(test_ds, model):
 	err = getErrRate(tp_sum, tn_sum, fp_sum, fn_sum)
 	print("error rate: " + str(err))
 	
-	tpr = getTPR(tp_sum, fp_sum)
+	tpr = getTPR(tp_sum, fn_sum)
 	print("True Positive Rate: " + str(tpr))
 	
 	tNr = getTNR(tn_sum, fp_sum)
 	print("True Negative Rate: " + str(tNr))
+	
+	precision = getPrecision(tp_sum, fp_sum)
+	print("Precision: " + str(precision))
 	
 	
 	#Print the false positive, false negative images.
@@ -135,16 +141,25 @@ def getErrRate(tp, tn, fp, fn):
 	return 1 - getAcc(tp, tn, fp, fn)
 
 
-def getTPR(tp, fp):
-	return tp / (tp + fp)
+# Also known as Sensitivity, recall, and hit rate.
+def getTPR(tp, fn):
+	return tp / (tp + fn)
 	
 
+# Also known as Specificity and selectivity
 def getTNR(tn, fp):
 	return tn / (tn + fp)
 
 
+# Also known as positive predictive value
+def getPrecision(truePos, falsePos):
+	return truePos / (truePos + falsePos)
+	
+
+
 # have to think how to do the mask to go very fast.
 # i'll just do a loop for now
+# I think a lambda function thing would work.
 def getTPsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
@@ -224,6 +239,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
+			# ~ epochs = 50,
 			epochs = 5,
 			# ~ epochs = 1,
 			validation_data = val_ds)
@@ -238,8 +254,8 @@ def saveGraphs(model, myHistory, test_ds):
 	
 	epochs = range(1, len(accuracy) + 1)
 	accCap = round(evalAccuracy, 4)
-	captionText = "Accuracy on test data: {}".format(accCap)
-	plt.figtext(0.5, 0.01, captionText, wrap=True, horizontalalignment='center', fontsize=12)
+	captionTextAcc = "Accuracy on test data: {}".format(accCap)
+	plt.figtext(0.5, 0.01, captionTextAcc, wrap=True, horizontalalignment='center', fontsize=12)
 	plt.plot(epochs, accuracy, "o", label="Training accuracy")
 	plt.plot(epochs, val_accuracy, "^", label="Validation accuracy")
 	plt.title("Model Accuracy vs Epochs")
@@ -254,8 +270,8 @@ def saveGraphs(model, myHistory, test_ds):
 	val_loss = myHistory.history["val_loss"]
 	
 	lossCap = round(evalLoss, 4)
-	captionText = "Loss on test data: {}".format(lossCap)
-	plt.figtext(0.5, 0.01, captionText, wrap=True, horizontalalignment='center', fontsize=12)
+	captionTextLoss = "Loss on test data: {}".format(lossCap)
+	plt.figtext(0.5, 0.01, captionTextLoss, wrap=True, horizontalalignment='center', fontsize=12)
 	plt.plot(epochs, loss, "o", label="Training loss")
 	plt.plot(epochs, val_loss, "^", label="Validation loss")
 	plt.title("Training and validation loss vs Epochs")
@@ -264,6 +280,8 @@ def saveGraphs(model, myHistory, test_ds):
 	plt.legend()
 	plt.savefig("trainvalloss.png")
 	plt.clf()
+	
+	return captionTextAcc, captionTextLoss
 
 
 def getDatasets(trainDir, valDir, testDir):
