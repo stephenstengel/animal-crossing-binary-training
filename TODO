@@ -1,4 +1,6 @@
 TODO:
+	Pass nearly all global values into functions through main
+
 	Get image size from text file.
 	
 	Add more models.

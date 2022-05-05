@@ -27,8 +27,6 @@ TRAIN_DIRECTORY = "../load-dataset-script/dataset/train/"
 VAL_DIRECTORY = "../load-dataset-script/dataset/val/"
 TEST_DIRECTORY = "../load-dataset-script/dataset/test/"
 
-CHECKPOINT_FOLDER = "./checkpoint/"
-
 CLASS_INTERESTING = 0
 CLASS_NOT_INTERESTING = 1
 
@@ -50,8 +48,15 @@ IMG_SHAPE_TUPPLE = (IMG_WIDTH, IMG_HEIGHT, IMG_CHANNELS)
 
 
 def main(args):
-	listOfFolders = [CHECKPOINT_FOLDER]
-	makeDirectories(listOfFolders)
+	listOfFoldersToDELETE = []
+	deleteDirectories(listOfFoldersToDELETE)
+	
+	# Folders to save model tests
+	harlowFolder = "./harlow/"
+	modelBaseFolders = [harlowFolder] #Same order as the modelList below!
+	
+	listOfFoldersToMake = [harlowFolder]
+	makeDirectories(listOfFoldersToMake)
 	
 	
 	# train_ds is for training the model.
@@ -69,22 +74,26 @@ def main(args):
 	for model in modelList:
 		model.summary()
 	
-	
-	#make output folders for each model
-	for model in modelList:
+	for i in range(len(modelList)):
 		print("Training model...")
-		myHistory = trainModel(model, train_ds, val_ds, CHECKPOINT_FOLDER)
+		thisOutputFolder = modelBaseFolders[i]
+		thisCheckpointFolder = thisOutputFolder + "checkpoint/"
+		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder]
+		makeDirectories(foldersForThisModel)
+		
+		myHistory = trainModel(model, train_ds, val_ds, thisCheckpointFolder)
 		print("Creating graphs of training history...")
-		strAcc, strLoss = saveGraphs(model, myHistory, test_ds)
+		strAcc, strLoss = saveGraphs(model, myHistory, test_ds, thisOutputFolder)
 		
 		#workin on this.
-		evaluateLabels(test_ds, model)
+		stringToPrint = evaluateLabels(test_ds, model, thisOutputFolder)
+		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
+		stringToPrint += strAcc + "\n"
+		stringToPrint += strLoss + "\n"
 		
-		print("Accuracy and loss according to tensorflow model.evaluate(): ")
-		print(strAcc)
-		print(strLoss)
-		
-		
+		statFileName = thisOutputFolder + "stats.txt"
+		printStringToFile(statFileName, stringToPrint, "w")
+		print(stringToPrint)
 
 	return 0
 
@@ -92,7 +101,7 @@ def main(args):
 # model.predict() makes an array of probabilities that a certian class is correct.
 # By saving the scores from the test_ds, we can see which images
 # cause false-positives, false-negatives, true-positives, and true-negatives
-def evaluateLabels(test_ds, model):
+def evaluateLabels(test_ds, model, outputFolder):
 	print("Getting predictions of test data...")
 	testScores = model.predict(test_ds, verbose = True)
 	actual_test_labels = extractLabels(test_ds)
@@ -100,35 +109,39 @@ def evaluateLabels(test_ds, model):
 	#Get the list of class predictions from the probability scores.
 	p_test_labels = getPredictedLabels(testScores)
 	
-	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels) # debug function
+	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels, outputFolder) # debug function
 	
 	#Calculate TPR, FPR, TNR, FNR
-	#could make a mask of all same with binary elements. then sum reduce
+	outString = ""
 	tp_sum = getTPsum(actual_test_labels, p_test_labels)
-	print("truePos: " + str(tp_sum))
+	outString += "truePos: " + str(tp_sum) + "\n"
 	tn_sum = getTNsum(actual_test_labels, p_test_labels)
-	print("true negative: " + str(tn_sum))
+	outString += "true negative: " + str(tn_sum) + "\n"
 	fp_sum = getFPsum(actual_test_labels, p_test_labels)
-	print("false pos: " + str(fp_sum))
+	outString += "false pos: " + str(fp_sum) + "\n"
 	fn_sum = getFNsum(actual_test_labels, p_test_labels)
-	print("false negative: " + str(fn_sum))
+	outString += "false negative: " + str(fn_sum) + "\n"
 	
 	accuracy = getAcc(tp_sum, tn_sum, fp_sum, fn_sum)
-	print("accuracy: " + str(accuracy))
+	outString += "accuracy: " + str(accuracy) + "\n"
 	err = getErrRate(tp_sum, tn_sum, fp_sum, fn_sum)
-	print("error rate: " + str(err))
+	outString += "error rate: " + str(err) + "\n"
 	
 	tpr = getTPR(tp_sum, fn_sum)
-	print("True Positive Rate: " + str(tpr))
+	outString += "True Positive Rate: " + str(tpr) + "\n"
 	
 	tNr = getTNR(tn_sum, fp_sum)
-	print("True Negative Rate: " + str(tNr))
+	outString += "True Negative Rate: " + str(tNr) + "\n"
 	
 	precision = getPrecision(tp_sum, fp_sum)
-	print("Precision: " + str(precision))
+	outString += "Precision: " + str(precision) + "\n"
 	
 	
-	#Print the false positive, false negative images.
+	#Save the false positive, false negative images into folders.
+	
+	#Make a pretty chart of these images?
+	
+	return outString
 
 
 def getAcc(tp, tn, fp, fn):
@@ -218,12 +231,15 @@ def getFNsum(actual_test_labels, p_test_labels):
 
 # Creates the necessary directories.
 def makeDirectories(listOfFoldersToCreate):
-	if os.path.isdir(CHECKPOINT_FOLDER):
-		shutil.rmtree(CHECKPOINT_FOLDER, ignore_errors = True)
-	
 	for folder in listOfFoldersToCreate:
 		if not os.path.isdir(folder):
 			os.makedirs(folder)
+
+
+def deleteDirectories(listDirsToDelete):
+	for folder in listDirsToDelete:
+		if os.path.isdir(folder):
+			shutil.rmtree(folder, ignore_errors = True)	
 
 
 # add checkpointer, earlystopper?
@@ -239,13 +255,13 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			# ~ epochs = 50,
-			epochs = 5,
+			epochs = 150,
+			# ~ epochs = 5,
 			# ~ epochs = 1,
 			validation_data = val_ds)
 
 
-def saveGraphs(model, myHistory, test_ds):
+def saveGraphs(model, myHistory, test_ds, outputFolder):
 	evalLoss, evalAccuracy = model.evaluate(test_ds)
 
 	plt.clf()
@@ -262,7 +278,7 @@ def saveGraphs(model, myHistory, test_ds):
 	plt.ylabel("accuracy")
 	plt.xlabel("epoch")
 	plt.legend()
-	plt.savefig("trainvalacc.png")
+	plt.savefig(outputFolder + "trainvalacc.png")
 
 	plt.clf()
 	
@@ -278,7 +294,7 @@ def saveGraphs(model, myHistory, test_ds):
 	plt.ylabel("loss")
 	plt.xlabel("epoch")
 	plt.legend()
-	plt.savefig("trainvalloss.png")
+	plt.savefig(outputFolder + "trainvalloss.png")
 	plt.clf()
 	
 	return captionTextAcc, captionTextLoss
@@ -317,9 +333,15 @@ def extractLabels(in_ds):
 	
 	return np.asarray(lablist)
 	
-	
-def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels):
-	with open("predictionlists.txt", "w") as outFile:
+
+def printStringToFile(fileName, textString, openMode):
+	with open(fileName, openMode) as myFile:
+		for character in textString:
+			myFile.write(character)
+
+
+def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outputFolder):
+	with open(outputFolder + "predictionlists.txt", "w") as outFile:
 		for i in range(len(predictedScores)):
 			thisScores = predictedScores[i]
 			intScore = str(round(thisScores[CLASS_INTERESTING], 4))
