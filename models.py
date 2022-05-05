@@ -34,3 +34,18 @@ def createHarlowModel(shapeTupple):
 	
 	
 	return hModel
+
+
+
+def simpleModel(shapeTupple):
+	model = tf.keras.models.Sequential([
+		Input(shapeTupple),
+		tf.keras.layers.Dense(128, activation='relu'),
+		tf.keras.layers.Dropout(0.1),
+		tf.keras.layers.Dense(2, activation = "softmax")
+	])
+	
+	model.compile(
+		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
+		loss = SparseCategoricalCrossentropy(from_logits=False),
+		metrics=['accuracy'])
