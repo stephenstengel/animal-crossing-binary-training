@@ -23,10 +23,10 @@ from keras import backend
 
 print("Done!")
 
-
-TRAIN_DIRECTORY = "../load-dataset-script/dataset/train/"
-VAL_DIRECTORY = "../load-dataset-script/dataset/val/"
-TEST_DIRECTORY = "../load-dataset-script/dataset/test/"
+LOADER_DIRECTORY = "../animal-crossing-loader/"
+TRAIN_DIRECTORY = LOADER_DIRECTORY + "dataset/train/"
+VAL_DIRECTORY = LOADER_DIRECTORY + "dataset/val/"
+TEST_DIRECTORY = LOADER_DIRECTORY + "dataset/test/"
 
 CLASS_INTERESTING = 0
 CLASS_NOT_INTERESTING = 1
