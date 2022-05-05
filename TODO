@@ -1,6 +1,4 @@
 TODO:
-	Add command line parameter to give a base folder to the output folders so that they can be segmented by experiment settings.
-	
 	Add math for finding steps per epoch; not sure if it's automatic.
 
 	Pass nearly all global values into functions through main
