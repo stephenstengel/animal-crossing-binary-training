@@ -264,8 +264,12 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 	
 	callbacks_list = [earlyStopper, checkpointer]
 	
+	
+	## shuffle parameter is ignored for dataset objects!
+	## investigate dataset.shuffle function.
 	return model.fit(
 			train_ds,
+			# ~ shuffle = True, #Default is true too
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
 			epochs = 100,
@@ -311,6 +315,9 @@ def saveGraphs(model, myHistory, test_ds, outputFolder):
 	return captionTextAcc, captionTextLoss
 
 
+
+# https://www.tensorflow.org/api_docs/python/tf/data/experimental/load
+# ^^^^ This shows how to shuffle when reading from the file! ^^^^
 def getDatasets(trainDir, valDir, testDir):
 	train = tf.data.experimental.load(trainDir)
 	val = tf.data.experimental.load(valDir)
