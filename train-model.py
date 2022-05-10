@@ -259,15 +259,16 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 		monitor = "accuracy",
 		save_best_only = True,
 		mode = "max")
-	callbacks_list = [checkpointer]
+	
+	earlyStopper = callbacks.EarlyStopping(monitor="accuracy", patience = 10)
+	
+	callbacks_list = [earlyStopper, checkpointer]
 	
 	return model.fit(
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			# ~ epochs = 150,
-			epochs = 5,
-			# ~ epochs = 1,
+			epochs = 100,
 			validation_data = val_ds)
 
 
