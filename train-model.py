@@ -23,10 +23,10 @@ from keras import backend
 
 print("Done!")
 
-LOADER_DIRECTORY = "../animal-crossing-loader/"
-TRAIN_DIRECTORY = LOADER_DIRECTORY + "dataset/train/"
-VAL_DIRECTORY = LOADER_DIRECTORY + "dataset/val/"
-TEST_DIRECTORY = LOADER_DIRECTORY + "dataset/test/"
+LOADER_DIRECTORY = os.path.normpath("../animal-crossing-loader/")
+TRAIN_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "train")
+VAL_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "val")
+TEST_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "test")
 
 CLASS_INTERESTING = 0
 CLASS_NOT_INTERESTING = 1
@@ -57,10 +57,11 @@ def main(args):
 	#base folder for this run
 	ts = time.localtime()
 	timeStr = "./%d-%d-%d-%d-%d-%d/" % (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec)
+	timeStr = os.path.normpath(timeStr)
 	
 	# Folders to save model tests
-	simpleFolder = timeStr + "simple/"
-	harlowFolder = timeStr + "harlow/"
+	simpleFolder = os.path.join(timeStr, "simple")
+	harlowFolder = os.path.join(timeStr, "harlow")
 	modelBaseFolders = [simpleFolder, harlowFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
@@ -83,12 +84,12 @@ def main(args):
 		thisModel.summary()
 		thisOutputFolder = modelBaseFolders[i]
 		print("Training model: " + thisOutputFolder)
-		thisCheckpointFolder = thisOutputFolder + "checkpoint/"
+		thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
 		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder]
 		makeDirectories(foldersForThisModel)
 		
 		#save copy of source code that created the output
-		os.system("cp train-model.py   " + thisOutputFolder + "train-model.py")
+		os.system("cp train-model.py   " + os.path.join(thisOutputFolder, "train-model.py"))
 		
 		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder)
 		print("Creating graphs of training history...")
@@ -100,7 +101,7 @@ def main(args):
 		stringToPrint += strAcc + "\n"
 		stringToPrint += strLoss + "\n"
 		
-		statFileName = thisOutputFolder + "stats.txt"
+		statFileName = os.path.join(thisOutputFolder, "stats.txt")
 		printStringToFile(statFileName, stringToPrint, "w")
 		print(stringToPrint)
 
@@ -287,7 +288,7 @@ def saveGraphs(model, myHistory, test_ds, outputFolder):
 	plt.ylabel("accuracy")
 	plt.xlabel("epoch")
 	plt.legend()
-	plt.savefig(outputFolder + "trainvalacc.png")
+	plt.savefig(os.path.join(outputFolder, "trainvalacc.png"))
 
 	plt.clf()
 	
@@ -303,7 +304,7 @@ def saveGraphs(model, myHistory, test_ds, outputFolder):
 	plt.ylabel("loss")
 	plt.xlabel("epoch")
 	plt.legend()
-	plt.savefig(outputFolder + "trainvalloss.png")
+	plt.savefig(os.path.join(outputFolder, "trainvalloss.png"))
 	plt.clf()
 	
 	return captionTextAcc, captionTextLoss
@@ -350,7 +351,7 @@ def printStringToFile(fileName, textString, openMode):
 
 
 def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outputFolder):
-	with open(outputFolder + "predictionlists.txt", "w") as outFile:
+	with open(os.path.join(outputFolder, "predictionlists.txt"), "w") as outFile:
 		for i in range(len(predictedScores)):
 			thisScores = predictedScores[i]
 			intScore = str(round(thisScores[CLASS_INTERESTING], 4))
