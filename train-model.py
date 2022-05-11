@@ -61,6 +61,8 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
+EPOCHS = 1
+
 
 def main(args):
 	listOfFoldersToDELETE = []
@@ -198,22 +200,8 @@ def getPrecision(truePos, falsePos):
 def getTPsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_BOBCAT) and (actual_test_labels[i] == p_test_labels[i]):
-			sumList.append(0)
-		elif (actual_test_labels[i] == CLASS_COYOTE) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(1)
-		elif (actual_test_labels[i] == CLASS_DEER) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(2)
-		elif (actual_test_labels[i] == CLASS_ELK) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(3)
-		elif (actual_test_labels[i] == CLASS_HUMAN) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(4)
-		elif (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(5)
-		elif (actual_test_labels[i] == CLASS_RACCOON) and (actual_test_labels[i] == p_test_labels[i]):
-				sumList.append(6)
-		else:
-			sumList.append(7)
+		if actual_test_labels[i] == p_test_labels[i]:
+			sumList.append(1)
 	
 	sumArr = np.asarray(sumList)
 	
@@ -223,11 +211,27 @@ def getTPsum(actual_test_labels, p_test_labels):
 def getTNsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
+		counter = 0
+		if (actual_test_labels[i] != CLASS_BOBCAT) and (CLASS_BOBCAT != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_COYOTE) and (CLASS_COYOTE != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_DEER) and (CLASS_DEER != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_ELK) and (CLASS_ELK != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_HUMAN) and (CLASS_HUMAN != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_NOT_INTERESTING) and (CLASS_NOT_INTERESTING != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_RACCOON) and (CLASS_RACCOON != p_test_labels[i]):
+			counter += 1
+		if (actual_test_labels[i] != CLASS_WEASEL) and (CLASS_WEASEL != p_test_labels[i]):
+			counter += 1
+   
+		if counter < 7:
 			sumList.append(1)
-		else:
-			sumList.append(0)
-	
+			
 	sumArr = np.asarray(sumList)
 	
 	return np.asarray(backend.sum(sumArr))
@@ -238,10 +242,22 @@ def getTNsum(actual_test_labels, p_test_labels):
 def getFPsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
+		if (actual_test_labels[i] != CLASS_BOBCAT) and (CLASS_BOBCAT == p_test_labels[i]):
 			sumList.append(1)
-		else:
-			sumList.append(0)
+		elif (actual_test_labels[i] != CLASS_COYOTE) and (CLASS_COYOTE == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_DEER) and (CLASS_DEER == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_ELK) and (CLASS_ELK == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_HUMAN) and (CLASS_HUMAN == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_NOT_INTERESTING) and (CLASS_NOT_INTERESTING == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_RACCOON) and (CLASS_RACCOON == p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] != CLASS_WEASEL) and (CLASS_WEASEL == p_test_labels[i]):
+			sumList.append(1)
 	
 	sumArr = np.asarray(sumList)
 	
@@ -251,22 +267,22 @@ def getFPsum(actual_test_labels, p_test_labels):
 def getFNsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_BOBCAT) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(0)
-		elif (actual_test_labels[i] == CLASS_COYOTE) and (actual_test_labels[i] != p_test_labels[i]):
+		if (actual_test_labels[i] == CLASS_BOBCAT) and (CLASS_BOBCAT != p_test_labels[i]):
 			sumList.append(1)
-		elif (actual_test_labels[i] == CLASS_DEER) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(2)
-		elif (actual_test_labels[i] == CLASS_ELK) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(3)
-		elif (actual_test_labels[i] == CLASS_HUMAN) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(4)
-		elif (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(5)
-		elif (actual_test_labels[i] == CLASS_RACCOON) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(6)
-		else:
-			sumList.append(7)
+		elif (actual_test_labels[i] == CLASS_COYOTE) and (CLASS_COYOTE != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_DEER) and (CLASS_DEER != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_ELK) and (CLASS_ELK != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_HUMAN) and (CLASS_HUMAN != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (CLASS_NOT_INTERESTING != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_RACCOON) and (CLASS_RACCOON != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_WEASEL) and (CLASS_WEASEL != p_test_labels[i]):
+			sumList.append(1)
 	
 	sumArr = np.asarray(sumList)
 	
@@ -304,7 +320,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			epochs = 15,
+			epochs = EPOCHS,
 			validation_data = val_ds)
 
 

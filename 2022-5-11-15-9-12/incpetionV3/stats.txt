@@ -1,0 +1,12 @@
+truePos: 1115
+true negative: 485
+false pos: 485
+false negative: 485
+accuracy: 0.622568093385214
+error rate: 0.377431906614786
+True Positive Rate: 0.696875
+True Negative Rate: 0.5
+Precision: 0.696875
+Accuracy and loss according to tensorflow model.evaluate():
+Accuracy on test data: 0.6969
+Loss on test data: 0.8679
