@@ -17,7 +17,7 @@ import time
 
 from tqdm import tqdm
 
-from models import createHarlowModel, simpleModel
+from models import createHarlowModel, simpleModel, inceptionV3Model
 from keras import callbacks
 from keras import backend
 
@@ -28,14 +28,26 @@ TRAIN_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "train")
 VAL_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "val")
 TEST_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "test")
 
-CLASS_INTERESTING = 0
-CLASS_NOT_INTERESTING = 1
+CLASS_BOBCAT = 0
+CLASS_COYOTE = 1
+CLASS_DEER = 2
+CLASS_ELK = 3
+CLASS_HUMAN = 4
+CLASS_NOT_INTERESTING = 5
+CLASS_RACCOON = 6
+CLASS_WEASEL = 7
 
-CLASS_INTERESTING_STRING = "interesting"
+CLASS_BOBCAT_STRING = "bobcat"
+CLASS_COYOTE_STRING = "coyote"
+CLASS_DEER_STRING = "deer"
+CLASS_ELK_STRING = "elk"
+CLASS_HUMAN_STRING = "human"
+CLASS_RACCOON_STRING = "raccoon"
+CLASS_WEASEL_STRING = "weasel"
 CLASS_NOT_INTERESTING_STRING = "not"
 
-CLASS_NAMES_LIST_INT = [CLASS_INTERESTING, CLASS_NOT_INTERESTING]
-CLASS_NAMES_LIST_STR = [CLASS_INTERESTING_STRING, CLASS_NOT_INTERESTING_STRING]
+CLASS_NAMES_LIST_INT = [CLASS_BOBCAT, CLASS_COYOTE, CLASS_DEER, CLASS_ELK, CLASS_HUMAN, CLASS_NOT_INTERESTING, CLASS_RACCOON, CLASS_WEASEL]
+CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_STRING, CLASS_ELK_STRING, CLASS_HUMAN_STRING, CLASS_NOT_INTERESTING_STRING, CLASS_RACCOON_STRING, CLASS_WEASEL_STRING]
 
 TEST_PRINTING = True
 
@@ -45,7 +57,7 @@ IMG_HEIGHT = 100
 # ~ IMG_HEIGHT = 150
 # ~ IMG_WIDTH = 400
 # ~ IMG_HEIGHT = 300
-IMG_CHANNELS = 1
+IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
@@ -62,7 +74,8 @@ def main(args):
 	# Folders to save model tests
 	simpleFolder = os.path.join(timeStr, "simple")
 	harlowFolder = os.path.join(timeStr, "harlow")
-	modelBaseFolders = [simpleFolder, harlowFolder] #Same order as the modelList below!
+	inceptionFolder = os.path.join(timeStr, "incpetionV3")
+	modelBaseFolders = [simpleFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
 	# train_ds is for training the model.
@@ -74,7 +87,7 @@ def main(args):
 		printSample(test_ds)
 	
 	shape = IMG_SHAPE_TUPPLE
-	modelList = [simpleModel(shape), createHarlowModel(shape)]
+	modelList = [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 
 	# This for loop can be compartmentalized into helper functions.
 	# There will be one wrapper function to perform k-folds
@@ -179,17 +192,28 @@ def getPrecision(truePos, falsePos):
 	return truePos / (truePos + falsePos)
 	
 
-
 # have to think how to do the mask to go very fast.
 # i'll just do a loop for now
 # I think a lambda function thing would work.
 def getTPsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
-			sumList.append(1)
-		else:
+		if (actual_test_labels[i] == CLASS_BOBCAT) and (actual_test_labels[i] == p_test_labels[i]):
 			sumList.append(0)
+		elif (actual_test_labels[i] == CLASS_COYOTE) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_DEER) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(2)
+		elif (actual_test_labels[i] == CLASS_ELK) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(3)
+		elif (actual_test_labels[i] == CLASS_HUMAN) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(4)
+		elif (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(5)
+		elif (actual_test_labels[i] == CLASS_RACCOON) and (actual_test_labels[i] == p_test_labels[i]):
+				sumList.append(6)
+		else:
+			sumList.append(7)
 	
 	sumArr = np.asarray(sumList)
 	
@@ -227,10 +251,22 @@ def getFPsum(actual_test_labels, p_test_labels):
 def getFNsum(actual_test_labels, p_test_labels):
 	sumList = []
 	for i in range(len(actual_test_labels)):
-		if (actual_test_labels[i] == CLASS_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
-			sumList.append(1)
-		else:
+		if (actual_test_labels[i] == CLASS_BOBCAT) and (actual_test_labels[i] != p_test_labels[i]):
 			sumList.append(0)
+		elif (actual_test_labels[i] == CLASS_COYOTE) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(1)
+		elif (actual_test_labels[i] == CLASS_DEER) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(2)
+		elif (actual_test_labels[i] == CLASS_ELK) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(3)
+		elif (actual_test_labels[i] == CLASS_HUMAN) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(4)
+		elif (actual_test_labels[i] == CLASS_NOT_INTERESTING) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(5)
+		elif (actual_test_labels[i] == CLASS_RACCOON) and (actual_test_labels[i] != p_test_labels[i]):
+			sumList.append(6)
+		else:
+			sumList.append(7)
 	
 	sumArr = np.asarray(sumList)
 	
@@ -268,7 +304,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			epochs = 100,
+			epochs = 15,
 			validation_data = val_ds)
 
 
@@ -355,26 +391,37 @@ def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outp
 	with open(os.path.join(outputFolder, "predictionlists.txt"), "w") as outFile:
 		for i in range(len(predictedScores)):
 			thisScores = predictedScores[i]
-			intScore = str(round(thisScores[CLASS_INTERESTING], 4))
+			bobcatScore = str(round(thisScores[CLASS_BOBCAT], 4))
+			coyoteScore = str(round(thisScores[CLASS_COYOTE], 4))
+			deerScore = str(round(thisScores[CLASS_DEER], 4))
+			elkScore = str(round(thisScores[CLASS_ELK], 4))
+			humanScore = str(round(thisScores[CLASS_HUMAN], 4))
 			notScore = str(round(thisScores[CLASS_NOT_INTERESTING], 4))
+			raccoonScore = str(round(thisScores[CLASS_RACCOON], 4))
+			weaselScore = str(round(thisScores[CLASS_WEASEL], 4))
 			
 			thisString = \
-			"predicted score int,not: [" + intScore + ", " + notScore + "]" \
+			"predicted score bobcat, coyote, deer, elk, human, not, raccon, score: [" + bobcatScore + ", " + coyoteScore + ", " + deerScore + ", " + elkScore + ", " + humanScore + ", " + notScore + ", " + raccoonScore + weaselScore + "]" \
 			+ "\tactual label " + str(originalLabels[i]) \
 			+ "\tpredicted label" + str(predictedLabels[i]) + "\n"
 			outFile.write(thisString)	
 
+
 def getPredictedLabels(testScores):
 	outList = []
 	for score in testScores:
-		if score[CLASS_INTERESTING] >= score[CLASS_NOT_INTERESTING]:
+		"""if score[CLASS_INTERESTING] >= score[CLASS_NOT_INTERESTING]:
 			outList.append(CLASS_INTERESTING)
 		else:
-			outList.append(CLASS_NOT_INTERESTING)
+			outList.append(CLASS_NOT_INTERESTING)"""
+   
+		thisMax = max(score)
+		maxIndex = np.where(score == thisMax)
+		outList.append(maxIndex)
 	
+ 
 	return np.asarray(outList)
 			
-
 
 if __name__ == '__main__':
 	import sys
