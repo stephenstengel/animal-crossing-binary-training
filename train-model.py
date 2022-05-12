@@ -141,7 +141,7 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 	#Get the list of class predictions from the probability scores.
 	p_test_labels = getPredictedLabels(testScores)
 	
-	saveMissclassified(test_ds, actual_test_labels, p_test_labels, missclassifiedFolder)
+	saveMisclassified(test_ds, actual_test_labels, p_test_labels, missclassifiedFolder)
 	
 	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels, outputFolder) # debug function
 	
@@ -159,13 +159,13 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 
 
 # Saves all missclassified images
-def saveMissclassified(dataset, labels, predicted, missClassifiedFolder):
+def saveMisclassified(dataset, labels, predicted, missClassifiedFolder):
 	cnt = 0
 	for img, _ in dataset.take(-1):
 		for i in range(BATCH_SIZE):
 			if labels[cnt] != predicted[cnt]:
 				myImg = np.asarray(img)
-				path = missClassifiedFolder + "\\" + CLASS_NAMES_LIST_STR[labels[cnt]] + "_" + str(cnt) + ".jpg"
+				path = missClassifiedFolder + "\\" + "actual_" + CLASS_NAMES_LIST_STR[labels[cnt]] + "_predicted_" + CLASS_NAMES_LIST_STR[predicted[cnt]] + "_" + str(cnt) + ".jpg"
 				saveThis = np.asarray(myImg[i]) * 255
 				cv2.imwrite(path, saveThis)
     
