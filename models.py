@@ -10,7 +10,7 @@ import tensorflow as tf
 from keras.models import Sequential
 from keras.applications.inception_v3 import InceptionV3
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
+from keras.losses import SparseCategoricalCrossentropy
 
 def createHarlowModel(shapeTupple):
 	hModel = Sequential(
