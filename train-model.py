@@ -146,7 +146,7 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels, outputFolder) # debug function
 	
 	outString = "Confusion Matrix:\n"
-	outString += "Bobcat, Coyote, Deer, Elk, Human, Not Interesting, Raccoon, Weasel\n"
+	outString += "Bobcat(0), Coyote(1), Deer(2), Elk(3), Human(4), Not Interesting(5), Raccoon(6), Weasel(7)\n"
 	
 	cf = str(confusion_matrix(actual_test_labels, p_test_labels))
 	cf_report = classification_report(actual_test_labels, p_test_labels, digits=4)
