@@ -64,6 +64,7 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
+BATCH_SIZE = 32	
 EPOCHS = 20
 
 
@@ -160,8 +161,8 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 # Saves all missclassified images
 def saveMissclassified(dataset, labels, predicted, missClassifiedFolder):
 	cnt = 0
-	for img, label in dataset.take(-1):
-		for i in range(32):
+	for img, _ in dataset.take(-1):
+		for i in range(BATCH_SIZE):
 			if labels[cnt] != predicted[cnt]:
 				myImg = np.asarray(img)
 				path = missClassifiedFolder + "\\" + CLASS_NAMES_LIST_STR[labels[cnt]] + "_" + str(cnt) + ".jpg"
