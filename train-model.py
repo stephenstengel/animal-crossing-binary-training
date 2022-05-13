@@ -196,7 +196,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 		save_best_only = True,
 		mode = "max")
 	
-	earlyStopper = callbacks.EarlyStopping(monitor="accuracy", patience = 10)
+	earlyStopper = callbacks.EarlyStopping(monitor="val_loss", patience = 5)
 	
 	callbacks_list = [earlyStopper, checkpointer]
 	
