@@ -299,19 +299,15 @@ def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outp
 	with open(os.path.join(outputFolder, "predictionlists.txt"), "w") as outFile:
 		for i in range(len(predictedScores)):
 			thisScores = predictedScores[i]
-			bobcatScore = str(round(thisScores[CLASS_BOBCAT], 4))
-			coyoteScore = str(round(thisScores[CLASS_COYOTE], 4))
-			deerScore = str(round(thisScores[CLASS_DEER], 4))
-			elkScore = str(round(thisScores[CLASS_ELK], 4))
-			humanScore = str(round(thisScores[CLASS_HUMAN], 4))
-			notScore = str(round(thisScores[CLASS_NOT_INTERESTING], 4))
-			raccoonScore = str(round(thisScores[CLASS_RACCOON], 4))
-			weaselScore = str(round(thisScores[CLASS_WEASEL], 4))
-			
-			thisString = \
-			"predicted scores: [" + bobcatScore + ", " + coyoteScore + ", " + deerScore + ", " + elkScore + ", " + humanScore + ", " + notScore + ", " + raccoonScore + weaselScore + "]" \
-			+ "\tactual label " + str(originalLabels[i]) \
-			+ "\tpredicted label" + str(predictedLabels[i]) + "\n"
+			thisString = "predicted scores: [" 
+			for animalClass in CLASS_NAMES_LIST_INT:
+				thisString += str(round(thisScores[animalClass], 4))
+				if len(thisScores) - 1 != animalClass:
+					thisString += ", "
+			thisString += "]"
+					+ "\tactual label " + str(originalLabels[i]) \
+					+ "\tpredicted label" + str(predictedLabels[i])
+					+ "\n"
 			outFile.write(thisString)	
 
 
