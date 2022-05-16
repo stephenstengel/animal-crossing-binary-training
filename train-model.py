@@ -111,8 +111,7 @@ def main(args):
 		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder, thisMissclassifiedFolder]
 		makeDirectories(foldersForThisModel)
 		
-		#save copy of source code that created the output
-		os.system("cp train-model.py   " + os.path.join(thisOutputFolder, "train-model.py"))
+		saveCopyOfSourceCode(thisOutputFolder)
 		
 		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs)
 		print("Creating graphs of training history...")
@@ -131,6 +130,15 @@ def main(args):
 		print(stringToPrint)
 
 	return 0
+
+
+#save copy of source code.
+def saveCopyOfSourceCode(thisOutputFolder):
+	thisFileName = os.path.basename(__file__)
+	try:
+		shutil.copy(thisFileName, os.path.join(thisOutputFolder, "copy-" + thisFileName))
+	except:
+		print("Failed to make a copy of the source code!")
 
 
 # model.predict() makes an array of probabilities that a certian class is correct.
@@ -315,9 +323,6 @@ def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outp
 def getPredictedLabels(testScores):
 	outList = []
 	for score in testScores:
-		# ~ thisMax = max(score)
-		# ~ maxIndex = np.where(score == thisMax)
-		# ~ outList.append(maxIndex[0][0])
 		outList.append(np.argmax(score))
 	
  
