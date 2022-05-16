@@ -93,6 +93,7 @@ def main(args):
 		printSample(test_ds)
 	
 	shape = IMG_SHAPE_TUPPLE
+	batchSize = BATCH_SIZE
 	modelList = [simpleModel(shape)] # ~ [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 
 	# This for loop can be compartmentalized into helper functions.
@@ -118,7 +119,7 @@ def main(args):
   		#workin on this.
 		stringToPrint = "Epochs: " + str(EPOCHS) + "\n"
 		stringToPrint += "Image Shape: " + str(IMG_SHAPE_TUPPLE) + "\n\n"
-		stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder)
+		stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
 		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
 		stringToPrint += strAcc + "\n"
 		stringToPrint += strLoss + "\n"
@@ -133,7 +134,7 @@ def main(args):
 # model.predict() makes an array of probabilities that a certian class is correct.
 # By saving the scores from the test_ds, we can see which images
 # cause false-positives, false-negatives, true-positives, and true-negatives
-def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
+def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder, batchSize):
 	print("Getting predictions of test data...")
 	testScores = model.predict(test_ds, verbose = True)
 	actual_test_labels = extractLabels(test_ds)
@@ -141,7 +142,7 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 	#Get the list of class predictions from the probability scores.
 	p_test_labels = getPredictedLabels(testScores)
 	
-	saveMisclassified(test_ds, actual_test_labels, p_test_labels, missclassifiedFolder)
+	saveMisclassified(test_ds, actual_test_labels, p_test_labels, missclassifiedFolder, batchSize)
 	
 	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels, outputFolder) # debug function
 	
@@ -159,10 +160,10 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder):
 
 
 # Saves all missclassified images
-def saveMisclassified(dataset, labels, predicted, missClassifiedFolder):
+def saveMisclassified(dataset, labels, predicted, missClassifiedFolder, batchSize):
 	cnt = 0
 	for img, _ in dataset.take(-1):
-		for i in range(BATCH_SIZE):
+		for i in range(batchSize):
 			if labels[cnt] != predicted[cnt]:
 				myImg = np.asarray(img)
 				path = missClassifiedFolder + "\\" + "actual_" + CLASS_NAMES_LIST_STR[labels[cnt]] + "_predicted_" + CLASS_NAMES_LIST_STR[predicted[cnt]] + "_" + str(cnt) + ".jpg"
