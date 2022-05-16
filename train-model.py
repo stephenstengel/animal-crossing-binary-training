@@ -19,7 +19,7 @@ import cv2
 from tqdm import tqdm
 
 from sklearn.metrics import confusion_matrix, classification_report
-from models import createHarlowModel, simpleModel, inceptionV3Model
+from models import createHarlowModel, nasNetModel, simpleModel, inceptionV3Model, VGG16Model, VGG19Model, efficientNetModel, inceptionResNetModel, xceptionModel
 from keras import callbacks
 
 print("Done!")
@@ -56,10 +56,8 @@ TEST_PRINTING = True
 # ~ IMG_HEIGHT = 100
 # ~ IMG_WIDTH = 200
 # ~ IMG_HEIGHT = 150
-IMG_WIDTH = 400
-IMG_HEIGHT = 300
-# ~ IMG_WIDTH = 300
-# ~ IMG_HEIGHT = 225
+IMG_WIDTH = 300
+IMG_HEIGHT = 225
 IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
@@ -81,7 +79,9 @@ def main(args):
 	simpleFolder = os.path.join(timeStr, "simple")
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
-	modelBaseFolders = [simpleFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	#modelBaseFolders = [simpleFolder, harlowFolder, inceptionFolder, vgg16Folder, vgg19Folder, nasNetFolder] #Same order as the modelList below!
+	namelessFolder = os.path.join(timeStr, "model")
+	modelBaseFolders = [namelessFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
 	# train_ds is for training the model.
@@ -93,7 +93,9 @@ def main(args):
 		printSample(test_ds)
 	
 	shape = IMG_SHAPE_TUPPLE
-	modelList = [simpleModel(shape)] # ~ [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
+ 
+	# These are the models
+	modelList = [inceptionV3Model(shape)] # ~ [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 
 	# This for loop can be compartmentalized into helper functions.
 	# There will be one wrapper function to perform k-folds
@@ -116,7 +118,8 @@ def main(args):
 		strAcc, strLoss = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
   
   		#workin on this.
-		stringToPrint = "Epochs: " + str(EPOCHS) + "\n"
+		stringToPrint = "Model: " + thisModel.name + "\n"
+		stringToPrint += "Epochs: " + str(EPOCHS) + "\n"
 		stringToPrint += "Image Shape: " + str(IMG_SHAPE_TUPPLE) + "\n\n"
 		stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder)
 		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
