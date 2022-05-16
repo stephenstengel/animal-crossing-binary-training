@@ -64,8 +64,9 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
-BATCH_SIZE = 32	
+BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 EPOCHS = 20
+# ~ EPOCHS = 100
 
 
 def main(args):
@@ -169,9 +170,9 @@ def saveMisclassified(dataset, labels, predicted, missClassifiedFolder, batchSiz
 				myImg = np.asarray(img)
 				thisActualName = CLASS_NAMES_LIST_STR[labels[cnt]]
 				thisPredictedName = CLASS_NAMES_LIST_STR[predicted[cnt]]
-				thisFileString = 
-						"actual_" + thisActualName
-						+ "_predicted_" +  thisPredictedName
+				thisFileString = \
+						"actual_" + thisActualName \
+						+ "_predicted_" +  thisPredictedName \
 						+ "_" + str(cnt) + ".jpg"
 				path = os.path.join(missClassifiedFolder, thisFileString)
 				saveThis = np.asarray(myImg[i]) * 255
@@ -304,9 +305,9 @@ def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outp
 				thisString += str(round(thisScores[animalClass], 4))
 				if len(thisScores) - 1 != animalClass:
 					thisString += ", "
-			thisString += "]"
+			thisString += "]" \
 					+ "\tactual label " + str(originalLabels[i]) \
-					+ "\tpredicted label" + str(predictedLabels[i])
+					+ "\tpredicted label" + str(predictedLabels[i]) \
 					+ "\n"
 			outFile.write(thisString)	
 
