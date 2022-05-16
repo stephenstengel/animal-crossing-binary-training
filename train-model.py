@@ -314,14 +314,10 @@ def printLabelStuffToFile(predictedScores, originalLabels, predictedLabels, outp
 def getPredictedLabels(testScores):
 	outList = []
 	for score in testScores:
-		"""if score[CLASS_INTERESTING] >= score[CLASS_NOT_INTERESTING]:
-			outList.append(CLASS_INTERESTING)
-		else:
-			outList.append(CLASS_NOT_INTERESTING)"""
-   
-		thisMax = max(score)
-		maxIndex = np.where(score == thisMax)
-		outList.append(maxIndex[0][0])
+		# ~ thisMax = max(score)
+		# ~ maxIndex = np.where(score == thisMax)
+		# ~ outList.append(maxIndex[0][0])
+		outList.append(np.argmax(score))
 	
  
 	return np.asarray(outList)
