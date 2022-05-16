@@ -94,6 +94,7 @@ def main(args):
 	
 	shape = IMG_SHAPE_TUPPLE
 	batchSize = BATCH_SIZE
+	numEpochs = EPOCHS
 	modelList = [simpleModel(shape)] # ~ [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 
 	# This for loop can be compartmentalized into helper functions.
@@ -112,12 +113,12 @@ def main(args):
 		#save copy of source code that created the output
 		os.system("cp train-model.py   " + os.path.join(thisOutputFolder, "train-model.py"))
 		
-		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder)
+		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs)
 		print("Creating graphs of training history...")
 		strAcc, strLoss = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
   
   		#workin on this.
-		stringToPrint = "Epochs: " + str(EPOCHS) + "\n"
+		stringToPrint = "Epochs: " + str(numEpochs) + "\n"
 		stringToPrint += "Image Shape: " + str(IMG_SHAPE_TUPPLE) + "\n\n"
 		stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
 		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
@@ -190,7 +191,7 @@ def deleteDirectories(listDirsToDelete):
 
 
 # add checkpointer, earlystopper?
-def trainModel(model, train_ds, val_ds, checkpointFolder):
+def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs):
 	checkpointer = callbacks.ModelCheckpoint(
 		filepath = checkpointFolder,
 		monitor = "accuracy",
@@ -205,7 +206,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder):
 			train_ds,
 			# ~ steps_per_epoch = 1, #to shorten training for testing purposes. I got no gpu qq.
 			callbacks = callbacks_list,
-			epochs = EPOCHS,
+			epochs = numEpochs,
 			validation_data = val_ds)
 
 
