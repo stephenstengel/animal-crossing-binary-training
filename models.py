@@ -8,8 +8,9 @@
 
 import tensorflow as tf
 from keras.models import Sequential
-from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
-from keras.losses import BinaryCrossentropy, SparseCategoricalCrossentropy
+from keras.applications.inception_v3 import InceptionV3
+from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.losses import SparseCategoricalCrossentropy
 
 def createHarlowModel(shapeTupple):
 	hModel = Sequential(
@@ -23,7 +24,7 @@ def createHarlowModel(shapeTupple):
 			MaxPooling2D(pool_size=(2, 2)),
 			Flatten(),
 			Dense(128, activation='relu'),
-			Dense(2, activation='softmax') #Needed for sparse categorical crossentropy
+			Dense(8, activation='softmax') #Needed for sparse categorical crossentropy
 		]
 	)
 	
@@ -36,6 +37,35 @@ def createHarlowModel(shapeTupple):
 	return hModel
 
 
+def inceptionV3Model(shapeTupple):
+    base_model = InceptionV3(
+		weights='imagenet',
+		include_top=False,
+		input_shape=shapeTupple
+	)
+    
+    base_model.trainable = False
+    
+    v3_model = Sequential(
+		[
+			base_model,
+			MaxPooling2D(pool_size=(2, 2), padding='same'),
+			Dropout(0.1),
+			Flatten(),
+			Dense(64, activation='relu'),
+			Dense(64, activation='relu'),
+			Dense(32, activation='relu'),
+			Dense(8, activation='softmax')
+		]
+	)
+    
+    v3_model.compile(
+		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
+		loss = SparseCategoricalCrossentropy(from_logits=False),
+		metrics=['accuracy'])
+    
+    return v3_model
+
 
 def simpleModel(shapeTupple):
 	model = tf.keras.models.Sequential([
@@ -43,7 +73,7 @@ def simpleModel(shapeTupple):
 		tf.keras.layers.Flatten(),
 		tf.keras.layers.Dense(128, activation='relu'),
 		tf.keras.layers.Dropout(0.1),
-		tf.keras.layers.Dense(2, activation = "softmax")
+		tf.keras.layers.Dense(8, activation = "softmax")
 	])
 	
 	model.compile(
