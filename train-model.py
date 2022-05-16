@@ -167,7 +167,13 @@ def saveMisclassified(dataset, labels, predicted, missClassifiedFolder, batchSiz
 		for i in range(batchSize):
 			if labels[cnt] != predicted[cnt]:
 				myImg = np.asarray(img)
-				path = missClassifiedFolder + "\\" + "actual_" + CLASS_NAMES_LIST_STR[labels[cnt]] + "_predicted_" + CLASS_NAMES_LIST_STR[predicted[cnt]] + "_" + str(cnt) + ".jpg"
+				thisActualName = CLASS_NAMES_LIST_STR[labels[cnt]]
+				thisPredictedName = CLASS_NAMES_LIST_STR[predicted[cnt]]
+				thisFileString = 
+						"actual_" + thisActualName
+						+ "_predicted_" +  thisPredictedName
+						+ "_" + str(cnt) + ".jpg"
+				path = os.path.join(missClassifiedFolder, thisFileString)
 				saveThis = np.asarray(myImg[i]) * 255
 				cv2.imwrite(path, saveThis)
     
