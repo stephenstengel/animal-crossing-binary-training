@@ -106,7 +106,7 @@ def main(args):
 		thisOutputFolder = modelBaseFolders[i]
 		print("Training model: " + thisOutputFolder)
 		thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
-		thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed images")
+		thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
 		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder, thisMissclassifiedFolder]
 		makeDirectories(foldersForThisModel)
 		
