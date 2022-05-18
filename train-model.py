@@ -65,8 +65,8 @@ IMG_CHANNELS = 3
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
-EPOCHS = 20
-# ~ EPOCHS = 100
+# ~ EPOCHS = 20
+EPOCHS = 100
 
 
 def main(args):
@@ -96,7 +96,8 @@ def main(args):
 	shape = IMG_SHAPE_TUPPLE
 	batchSize = BATCH_SIZE
 	numEpochs = EPOCHS
-	modelList = [simpleModel(shape)] # ~ [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
+	# ~ modelList = [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
+	modelList = [simpleModel(shape)]
 
 	# This for loop can be compartmentalized into helper functions.
 	# There will be one wrapper function to perform k-folds
@@ -216,7 +217,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs):
 	earlyStopper = callbacks.EarlyStopping( \
 			monitor="val_accuracy", \
 			mode = "max",
-			patience = 5, \
+			patience = 10, \
 			restore_best_weights = True)
 	
 	callbacks_list = [earlyStopper, checkpointer]
