@@ -213,7 +213,11 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs):
 		save_best_only = True,
 		mode = "max")
 	
-	earlyStopper = callbacks.EarlyStopping(monitor="val_loss", patience = 5)
+	earlyStopper = callbacks.EarlyStopping( \
+			monitor="val_accuracy", \
+			mode = "max",
+			patience = 5, \
+			restore_best_weights = True)
 	
 	callbacks_list = [earlyStopper, checkpointer]
 	
