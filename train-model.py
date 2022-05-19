@@ -118,7 +118,7 @@ def main(args):
 		
 		for jay in range(REPEATS):
 			thisTestAcc, thisModel = runOneTest( \
-					modelList[i], os.path.join(modelBaseFolders[i], jay), \
+					modelList[i], os.path.join(modelBaseFolders[i], str(jay)), \
 					train_ds, val_ds, test_ds, \
 					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
 					batchSize)
