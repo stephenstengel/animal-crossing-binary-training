@@ -53,8 +53,10 @@ CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_STR
 
 TEST_PRINTING = False
 
-IMG_WIDTH = 100
-IMG_HEIGHT = 100
+IMG_WIDTH = 40
+IMG_HEIGHT = 30
+# ~ IMG_WIDTH = 100
+# ~ IMG_HEIGHT = 100
 # ~ IMG_WIDTH = 200
 # ~ IMG_HEIGHT = 150
 # ~ IMG_WIDTH = 400
@@ -65,7 +67,7 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
-BATCH_SIZE = 32	#This is also set in the image loader. They must match.
+BATCH_SIZE = 16	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 # ~ EPOCHS = 100
 EPOCHS = 2
@@ -112,9 +114,6 @@ def main(args):
 	#best accuracy from each type of model. Then printout which model
 	#gave the best accuracy overall and say where the model is saved.
 	for i in range(len(modelList)):
-		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
-		##Below here in this function can just be another function.
-		
 		overallBestAcc = -math.inf
 		overallBestModel = None
 		overallBestFolder = ""
@@ -124,7 +123,7 @@ def main(args):
 				runManyTests(
 						modelBaseFolders[i], REPEATS, modelList[i], \
 						train_ds, val_ds, test_ds, numEpochs, \
-						numPatience, imgShape, batchSize)
+						numPatience, imgShape, batchSize, LOADER_DIRECTORY)
 		eachModelAcc.append(thisAcc)
 		if thisAcc > overallBestAcc:
 			overallBestAcc = thisAcc
@@ -137,7 +136,7 @@ def main(args):
 	outString = "The best accuracies among the models..." + "\n"
 	for thingy in eachModelAcc:
 		outString += str(round(thingy, 4)) + "\n"
-	outString += "The overall best saved model is in folder: " + overallBestFolder
+	outString += "The overall best saved model is in folder: " + overallBestFolder + "\n"
 	outString += "It has an accuracy of: " + str(round(overallBestAcc, 4)) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(timeStr, "overall-output.txt") , outString, "w")
@@ -148,7 +147,7 @@ def main(args):
 	return 0
 
 
-def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
+def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory):
 	saveCopyOfSourceCode(thisBaseOutFolder)
 	
 	theRunWithTheBestAccuracy = -1
@@ -160,6 +159,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	eachTestAcc = []
 	
 	for jay in range(numRepeats):
+		reloadImageDatasets(loaderScriptDirectory, "load-dataset.py") ## this function could be replaced with a shuffle function. If we had one big dataset file, we could shuffle that instead of reloading the images every time. But this works.
 		thisInputModel = inputModel(imgShapeTupple)
 		
 		thisTestAcc, thisOutModel, thisOutputFolder = runOneTest( \
@@ -181,7 +181,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	outString = "The accuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
 		outString += str(round(thingy, 4)) + "\n"
-	outString += "The best saved model is in folder: " + theBestSavedModelFolder
+	outString += "The best saved model is in folder: " + theBestSavedModelFolder + "\n"
 	outString += "It has an accuracy of: " + str(round(theBestAccuracy, 4)) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
