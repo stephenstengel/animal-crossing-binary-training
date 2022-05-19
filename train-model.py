@@ -126,9 +126,10 @@ def main(args):
 		overallBestAcc = -math.inf
 		overallBestModel = None
 		overallBestFolder = ""
+		overallBestCheckpointFolder = ""
 		eachModelAcc = []
 		
-		thisAcc, thisModel, thisFolder = \
+		thisAcc, thisModel, thisFolder, thisCheckpointFolder = \
 				runManyTests(
 						modelBaseFolders[i], REPEATS, modelList[i], \
 						train_ds, val_ds, test_ds, numEpochs, \
@@ -138,8 +139,10 @@ def main(args):
 			overallBestAcc = thisAcc
 			overallBestModel = thisModel
 			overallBestFolder = thisFolder
+			overallBestCheckpointFolder = thisCheckpointFolder
 		else:
 			del thisModel
+			deleteDirectories([thisCheckpointFolder])
 	
 	
 	outString = "The best accuracies among the models..." + "\n"
@@ -164,6 +167,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	theBestModel = None
 	theBestSavedModelFolder = "" #might not need this if I use the lists.
 	#akshually if we save to disk each time we can save ram.
+	theBestCheckpointFolder = ""
 	
 	eachTestAcc = []
 	
@@ -171,7 +175,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 		reloadImageDatasets(loaderScriptDirectory, "load-dataset.py") ## this function could be replaced with a shuffle function. If we had one big dataset file, we could shuffle that instead of reloading the images every time. But this works.
 		thisInputModel = inputModel(imgShapeTupple)
 		
-		thisTestAcc, thisOutModel, thisOutputFolder = runOneTest( \
+		thisTestAcc, thisOutModel, thisOutputFolder, thisCheckpointFolder = runOneTest( \
 				thisInputModel, os.path.join(thisBaseOutFolder, str(jay)), \
 				train_ds, val_ds, test_ds, \
 				numEpochs, numPatience, imgShapeTupple, \
@@ -184,8 +188,10 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 			theRunWithTheBestAccuracy = jay
 			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
+			theBestCheckpointFolder = thisCheckpointFolder
 		else:
 			del thisInputModel #To save a bit of ram faster.
+			deleteDirectories([thisCheckpointFolder])
 	
 	outString = "The accuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
@@ -195,7 +201,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	print(outString)
 	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
 	
-	return theBestAccuracy, theBestModel, theBestSavedModelFolder
+	return theBestAccuracy, theBestModel, theBestSavedModelFolder, theBestCheckpointFolder
 
 
 def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
@@ -223,7 +229,7 @@ def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs
 	printStringToFile(statFileName, stringToPrint, "w")
 	print(stringToPrint)
 	
-	return thisTestAcc, thisModel, thisOutputFolder
+	return thisTestAcc, thisModel, thisOutputFolder, thisCheckpointFolder
 	
 
 #Reload the images from the dataset so that you can run another test with randomized images.
