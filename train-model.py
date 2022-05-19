@@ -69,8 +69,8 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
 BATCH_SIZE = 16	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
-# ~ EPOCHS = 100
-EPOCHS = 2
+EPOCHS = 100
+# ~ EPOCHS = 2
 PATIENCE = 10
 REPEATS = 5
 
@@ -89,7 +89,8 @@ def main(args):
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
 	mediumFolder = os.path.join(timeStr, "medium")
-	modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	# ~ modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	modelBaseFolders = [harlowFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
 	# train_ds is for training the model.
@@ -107,7 +108,8 @@ def main(args):
 	
 	#these contain the functions to create the models, NOT the models themselves.
 	# ~ modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
-	modelList = [simpleModel, mediumModel]
+	# ~ modelList = [simpleModel, mediumModel]
+	modelList = [createHarlowModel]
 
 
 	#This loop can be segmented further. We could also keep track of the

@@ -31,7 +31,8 @@ def createHarlowModel(shapeTupple):
 	hModel.compile(
 		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		metrics=['accuracy'])
+		# ~ metrics=['accuracy'])
+		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")])
 	
 	
 	return hModel
@@ -62,7 +63,7 @@ def inceptionV3Model(shapeTupple):
     v3_model.compile(
 		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		metrics=['accuracy'])
+		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")])
     
     return v3_model
 
@@ -83,6 +84,7 @@ def simpleModel(shapeTupple):
 	
 	return model
 
+
 def mediumModel(shapeTupple):
 	model = tf.keras.models.Sequential([
 		Input(shapeTupple),
@@ -95,8 +97,8 @@ def mediumModel(shapeTupple):
 	])
 	
 	model.compile(
-		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
+		optimizer=tf.keras.optimizers.SGD(),
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		metrics=['accuracy'])
+		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")]) #used name ="accuracy" so I don't have to re-write graphs
 	
 	return model
