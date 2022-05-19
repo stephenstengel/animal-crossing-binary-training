@@ -234,7 +234,6 @@ def reloadImageDatasets(loaderPath, scriptName):
 	
 	loaderPID = None
 	
-	## I think that the specific python name string should be in the args list from main.
 	os.system(MY_PYTHON_STRING + " " + scriptName)
 	
 	# ~ loaderPID = subprocess.Popen([MY_PYTHON_STRING, scriptName])
