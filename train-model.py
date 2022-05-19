@@ -139,6 +139,7 @@ def main(args):
 			overallBestAcc = thisAcc
 			overallBestModel = thisModel
 			overallBestFolder = thisFolder
+			deleteDirectories([overallBestCheckpointFolder])
 			overallBestCheckpointFolder = thisCheckpointFolder
 		else:
 			del thisModel
@@ -188,6 +189,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 			theRunWithTheBestAccuracy = jay
 			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
+			deleteDirectories([theBestCheckpointFolder])
 			theBestCheckpointFolder = thisCheckpointFolder
 		else:
 			del thisInputModel #To save a bit of ram faster.
