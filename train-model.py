@@ -76,6 +76,11 @@ EPOCHS = 2
 PATIENCE = 10
 REPEATS = 5
 
+#how to get programatically? 
+MY_PYTHON_STRING = "python"
+# ~ MY_PYTHON_STRING = "python3"
+# ~ MY_PYTHON_STRING = "py"
+
 
 def main(args):
 	listOfFoldersToDELETE = []
@@ -231,9 +236,9 @@ def reloadImageDatasets(loaderPath, scriptName):
 	
 	## I think that the specific python name string should be in the args list from main.
 	if sys.platform.startswith("win"):
-		loaderPID = subprocess.Popen(["wsl", "python3", scriptName])
+		loaderPID = subprocess.Popen(["wsl", MY_PYTHON_STRING, scriptName])
 	elif sys.platform.startswith("linux"):
-		loaderPID = subprocess.Popen(["python3", scriptName])
+		loaderPID = subprocess.Popen([MY_PYTHON_STRING, scriptName])
 	else:
 		print("MASSIVE ERROR LOL!")
 		exit(-4)
