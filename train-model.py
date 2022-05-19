@@ -138,6 +138,7 @@ def main(args):
 	for thingy in eachModelAcc:
 		outString += str(round(thingy, 4)) + "\n"
 	outString += "The overall best saved model is in folder: " + overallBestFolder
+	outString += "It has an accuracy of: " + str(round(overallBestAcc, 4)) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(timeStr, "overall-output.txt") , outString, "w")
 		
@@ -181,6 +182,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	for thingy in eachTestAcc:
 		outString += str(round(thingy, 4)) + "\n"
 	outString += "The best saved model is in folder: " + theBestSavedModelFolder
+	outString += "It has an accuracy of: " + str(round(theBestAccuracy, 4)) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
 	
