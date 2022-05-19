@@ -86,7 +86,7 @@ def main(args):
 	simpleFolder = os.path.join(timeStr, "simple")
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
-	mediumFolder = os.path.join(timeStrm, "medium")
+	mediumFolder = os.path.join(timeStr, "medium")
 	modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
