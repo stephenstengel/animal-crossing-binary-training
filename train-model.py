@@ -53,12 +53,12 @@ CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_STR
 
 TEST_PRINTING = False
 
-IMG_WIDTH = 40
-IMG_HEIGHT = 30
+# ~ IMG_WIDTH = 40
+# ~ IMG_HEIGHT = 30
 # ~ IMG_WIDTH = 100
 # ~ IMG_HEIGHT = 100
-# ~ IMG_WIDTH = 200
-# ~ IMG_HEIGHT = 150
+IMG_WIDTH = 200
+IMG_HEIGHT = 150
 # ~ IMG_WIDTH = 400
 # ~ IMG_HEIGHT = 300
 # ~ IMG_WIDTH = 300
@@ -67,11 +67,11 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
-BATCH_SIZE = 16	#This is also set in the image loader. They must match.
+BATCH_SIZE = 8	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
-EPOCHS = 100
+EPOCHS = 200
 # ~ EPOCHS = 2
-PATIENCE = 10
+PATIENCE = 13
 REPEATS = 5
 
 
@@ -89,8 +89,8 @@ def main(args):
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
 	mediumFolder = os.path.join(timeStr, "medium")
-	# ~ modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
-	modelBaseFolders = [harlowFolder] #Same order as the modelList below!
+	modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	# ~ modelBaseFolders = [mediumFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
 	# train_ds is for training the model.
@@ -107,9 +107,9 @@ def main(args):
 	numPatience = PATIENCE
 	
 	#these contain the functions to create the models, NOT the models themselves.
-	# ~ modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
+	modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
 	# ~ modelList = [simpleModel, mediumModel]
-	modelList = [createHarlowModel]
+	# ~ modelList = [mediumModel]
 
 
 	#This loop can be segmented further. We could also keep track of the

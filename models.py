@@ -31,8 +31,7 @@ def createHarlowModel(shapeTupple):
 	hModel.compile(
 		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		# ~ metrics=['accuracy'])
-		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")])
+		metrics=['accuracy'])
 	
 	
 	return hModel
@@ -63,7 +62,7 @@ def inceptionV3Model(shapeTupple):
     v3_model.compile(
 		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")])
+		metrics=['accuracy'])
     
     return v3_model
 
@@ -80,7 +79,7 @@ def simpleModel(shapeTupple):
 	model.compile(
 		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
 		loss = SparseCategoricalCrossentropy(from_logits=False),
-		metrics=['accuracy'])
+		metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name = "accuracy")])
 	
 	return model
 
@@ -92,7 +91,6 @@ def mediumModel(shapeTupple):
 		tf.keras.layers.Dense(256, activation='relu'),
 		tf.keras.layers.Dropout(0.1),
 		tf.keras.layers.Dense(256, activation='relu'),
-		tf.keras.layers.Dropout(0.1),
 		tf.keras.layers.Dense(8, activation = "softmax")
 	])
 	
