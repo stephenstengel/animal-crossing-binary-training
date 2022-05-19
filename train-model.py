@@ -17,6 +17,7 @@ import time
 import cv2
 import math
 import subprocess
+import gc
 
 from tqdm import tqdm
 
@@ -137,6 +138,7 @@ def main(args):
 		eachModelAcc.append(thisAcc)
 		if thisAcc > overallBestAcc:
 			overallBestAcc = thisAcc
+			del overallBestModel
 			overallBestModel = thisModel
 			overallBestFolder = thisFolder
 			deleteDirectories([overallBestCheckpointFolder])
@@ -144,6 +146,7 @@ def main(args):
 		else:
 			del thisModel
 			deleteDirectories([thisCheckpointFolder])
+		gc.collect()
 	
 	
 	outString = "The best accuracies among the models..." + "\n"
@@ -187,6 +190,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 		if thisTestAcc > theBestAccuracy:
 			theBestAccuracy = thisTestAcc
 			theRunWithTheBestAccuracy = jay
+			del theBestModel
 			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
 			deleteDirectories([theBestCheckpointFolder])
@@ -194,6 +198,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 		else:
 			del thisInputModel #To save a bit of ram faster.
 			deleteDirectories([thisCheckpointFolder])
+		gc.collect()
 	
 	outString = "The accuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
