@@ -97,12 +97,12 @@ def main(args):
 	if TEST_PRINTING:
 		printSample(test_ds)
 	
-	shape = IMG_SHAPE_TUPPLE
+	imgShape = IMG_SHAPE_TUPPLE
 	batchSize = BATCH_SIZE
 	numEpochs = EPOCHS
 	numPatience = PATIENCE
-	# ~ modelList = [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
-	modelList = [simpleModel(shape)]
+	# ~ modelList = [simpleModel(imgShape), createHarlowModel(imgShape), inceptionV3Model(imgShape)]
+	modelList = [simpleModel(imgShape)]
 
 
 	#This loop can be segmented further. We could also keep track of the
@@ -113,7 +113,7 @@ def main(args):
 		##Below here in this function can just be another function.
 		
 		runManyTests(modelBaseFolders[i], REPEATS, modelList[i], \
-				train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize)
+				train_ds, val_ds, test_ds, numEpochs, numPatience, imgShape, batchSize)
 	
 	print("A winner is YOU!")
 		
