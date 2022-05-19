@@ -151,6 +151,8 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 			theRunWithTheBestAccuracy = jay
 			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
+		else:
+			del thisInputModel #To save a bit of space faster.
 	
 	outString = "The acuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
