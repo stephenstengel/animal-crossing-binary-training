@@ -108,7 +108,8 @@ def main(args):
 	# something like performExperiment -> performKfolds -> contents of this for loop.
 	for i in range(len(modelList)):
 		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
-		saveCopyOfSourceCode(thisOutputFolder)
+		thisBaseOutFolder = modelBaseFolders[i]
+		saveCopyOfSourceCode(thisBaseOutFolder)
 		
 		theRunWithTheBestAccuracy = -1
 		theBestAccuracy = -math.inf
@@ -117,7 +118,7 @@ def main(args):
 		
 		for j in range(REPEATS):
 			thisTestAcc, thisModel = runOneTest( \
-					i, modelList, modelBaseFolders, \
+					i, modelList[i], modelBaseFolders[i], \
 					train_ds, val_ds, test_ds, \
 					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
 					batchSize)
@@ -130,10 +131,9 @@ def main(args):
 	return 0
 
 
-def runOneTest():
-	thisModel = modelList[i]
+def runOneTest(i, thisModel, modelBaseFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
 	thisModel.summary()
-	thisOutputFolder = modelBaseFolders[i]
+	thisOutputFolder = os.path.join(modelBaseFolder, str(i))
 	print("Training model: " + thisOutputFolder)
 	thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
 	thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
