@@ -235,18 +235,13 @@ def reloadImageDatasets(loaderPath, scriptName):
 	loaderPID = None
 	
 	## I think that the specific python name string should be in the args list from main.
-	if sys.platform.startswith("win"):
-		loaderPID = subprocess.Popen(["wsl", MY_PYTHON_STRING, scriptName])
-	elif sys.platform.startswith("linux"):
-		loaderPID = subprocess.Popen([MY_PYTHON_STRING, scriptName])
-	else:
-		print("MASSIVE ERROR LOL!")
-		exit(-4)
+	loaderPID = subprocess.Popen([MY_PYTHON_STRING, scriptName])
 	
 	if loaderPID is not None:
 		loaderPID.wait()
 	else:
 		print("MASSIVE ERROR LOL!")
+		# ~ exit(13)
 	
 	os.chdir(startDirectory)
 
