@@ -113,24 +113,32 @@ def main(args):
 		
 		theRunWithTheBestAccuracy = -1
 		theBestAccuracy = -math.inf
-		theBestSavedModel = None
+		theBestModel = None
 		theBestSavedModelFolder = "" #might not need this if I use the lists.
+		#akshually if we save to disk each time we can save ram.
 		
 		for jay in range(REPEATS):
-			thisTestAcc, thisModel = runOneTest( \
-					modelList[i], os.path.join(modelBaseFolders[i], str(jay)), \
+			thisTestAcc, thisModel, thisOutputFolder = runOneTest( \
+					modelList[i], os.path.join(thisBaseOutFolder, str(jay)), \
 					train_ds, val_ds, test_ds, \
 					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
 					batchSize)
 			print("Wow! we made it through!")
 			print("thisTestAcc: " + str(thisTestAcc))
 			print("thisModel: " + str(thisModel))
-			print("you are made it!")
-			exit(201)
+			# ~ print("you are made it!")
+			# ~ exit(201)
 			
 			if thisTestAcc > theBestAccuracy:
 				theBestAccuracy = thisTestAcc
-				theRunWithTheBestAccuracy = j
+				theRunWithTheBestAccuracy = jay
+				theBestModel = thisModel
+				theBestSavedModelFolder = thisOutputFolder
+		
+		print("The best saved model is in folder: ", end="")
+		print( theBestSavedModelFolder )
+		
+		print("YAAAAY!")
 				
 
 	return 0
@@ -161,7 +169,7 @@ def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs
 	printStringToFile(statFileName, stringToPrint, "w")
 	print(stringToPrint)
 	
-	return thisTestAcc, thisModel
+	return thisTestAcc, thisModel, thisOutputFolder
 	
 
 #Reload the images from the dataset so that you can run another test with randomized images.
