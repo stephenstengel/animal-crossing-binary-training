@@ -22,7 +22,7 @@ import gc
 from tqdm import tqdm
 
 from sklearn.metrics import confusion_matrix, classification_report
-from models import createHarlowModel, simpleModel, inceptionV3Model, mediumModel
+from models import createHarlowModel, simpleModel, inceptionV3Model, mediumModel, inceptionResNetModel
 from keras import callbacks
 
 print("Done!")
@@ -73,9 +73,11 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 # ~ EPOCHS = 100
-EPOCHS = 2
-PATIENCE = 10
-REPEATS = 5
+#EPOCHS = 2
+#PATIENCE = 10
+EPOCHS = 10
+PATIENCE = 5
+REPEATS = 1
 
 #how to get programatically? 
 MY_PYTHON_STRING = "python"
@@ -97,7 +99,9 @@ def main(args):
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
 	mediumFolder = os.path.join(timeStr, "medium")
-	modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	inceptionResNetFolder = os.path.join(timeStr, "inceptionResNet")
+	#modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	modelBaseFolders = [inceptionResNetFolder]
 	# ~ modelBaseFolders = [mediumFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
@@ -115,7 +119,8 @@ def main(args):
 	numPatience = PATIENCE
 	
 	#these contain the functions to create the models, NOT the models themselves.
-	modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
+	#modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
+	modelList = [inceptionResNetModel]
 	# ~ modelList = [simpleModel, mediumModel]
 	# ~ modelList = [mediumModel]
 
@@ -350,7 +355,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs, numPatience
 		mode = "max")
 	
 	earlyStopper = callbacks.EarlyStopping( \
-			monitor="val_accuracy", \
+			monitor="val_loss", \
 			mode = "max",
 			patience = numPatience, \
 			restore_best_weights = True)
@@ -467,30 +472,9 @@ def getPredictedLabels(testScores):
 	for score in testScores:
 		outList.append(np.argmax(score))
 	
- 
 	return np.asarray(outList)
 			
 
 if __name__ == '__main__':
 	import sys
 	sys.exit(main(sys.argv))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
