@@ -82,3 +82,21 @@ def simpleModel(shapeTupple):
 		metrics=['accuracy'])
 	
 	return model
+
+def mediumModel(shapeTupple):
+	model = tf.keras.models.Sequential([
+		Input(shapeTupple),
+		tf.keras.layers.Flatten(),
+		tf.keras.layers.Dense(256, activation='relu'),
+		tf.keras.layers.Dropout(0.1),
+		tf.keras.layers.Dense(256, activation='relu'),
+		tf.keras.layers.Dropout(0.1),
+		tf.keras.layers.Dense(8, activation = "softmax")
+	])
+	
+	model.compile(
+		optimizer=tf.keras.optimizers.Adam(), # default learning rate is 0.001
+		loss = SparseCategoricalCrossentropy(from_logits=False),
+		metrics=['accuracy'])
+	
+	return model
