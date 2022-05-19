@@ -67,6 +67,7 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 EPOCHS = 100
+PATIENCE = 10
 
 
 def main(args):
@@ -96,6 +97,7 @@ def main(args):
 	shape = IMG_SHAPE_TUPPLE
 	batchSize = BATCH_SIZE
 	numEpochs = EPOCHS
+	numPatience = PATIENCE
 	# ~ modelList = [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 	modelList = [simpleModel(shape)]
 
@@ -103,6 +105,8 @@ def main(args):
 	# There will be one wrapper function to perform k-folds
 	# something like performExperiment -> performKfolds -> contents of this for loop.
 	for i in range(len(modelList)):
+		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
+		
 		thisModel = modelList[i]
 		thisModel.summary()
 		thisOutputFolder = modelBaseFolders[i]
@@ -114,7 +118,7 @@ def main(args):
 		
 		saveCopyOfSourceCode(thisOutputFolder)
 		
-		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs)
+		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs, numPatience)
 		print("Creating graphs of training history...")
 		strAcc, strLoss = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
   
@@ -132,6 +136,29 @@ def main(args):
 
 	return 0
 
+
+#Reload the images from the dataset so that you can run another test with randomized images.
+def reloadImageDatasets(loaderPath, scriptName):
+	#save current directory
+	startDirectory = os.getcwd()
+	os.chdir(loaderPath)
+	
+	#Some platforms use different names for python3. It could be python or py as well! ##
+	loadCommand = "python3  " + scriptName
+	runSystemCommand(loadCommand)
+	
+	os.chdir(startDirectory)
+
+
+#Runs a system command. Input is the string that would run on linux or inside wsl.
+def runSystemCommand(inputString):
+	if sys.platform.startswith("win"):
+		os.system("wsl " + inputString)
+	elif sys.platform.startswith("linux"):
+		os.system(inputString)
+	else:
+		print("MASSIVE ERROR LOL!")
+		exit(-4)	
 
 #save copy of source code.
 def saveCopyOfSourceCode(thisOutputFolder):
@@ -207,7 +234,7 @@ def deleteDirectories(listDirsToDelete):
 
 
 # add checkpointer, earlystopper?
-def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs):
+def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs, numPatience):
 	checkpointer = callbacks.ModelCheckpoint(
 		filepath = checkpointFolder,
 		monitor = "accuracy",
@@ -217,7 +244,7 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs):
 	earlyStopper = callbacks.EarlyStopping( \
 			monitor="val_accuracy", \
 			mode = "max",
-			patience = 10, \
+			patience = numPatience, \
 			restore_best_weights = True)
 	
 	callbacks_list = [earlyStopper, checkpointer]
