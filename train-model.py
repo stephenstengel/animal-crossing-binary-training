@@ -133,7 +133,7 @@ def main(args):
 
 def runOneTest(i, thisModel, modelBaseFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
 	thisModel.summary()
-	thisOutputFolder = os.path.join(modelBaseFolder, str(i))
+	thisOutputFolder = os.path.join(modelBaseFolder, str(i)) #a numbered folder for this run
 	print("Training model: " + thisOutputFolder)
 	thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
 	thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
