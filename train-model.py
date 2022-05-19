@@ -101,8 +101,10 @@ def main(args):
 	batchSize = BATCH_SIZE
 	numEpochs = EPOCHS
 	numPatience = PATIENCE
-	# ~ modelList = [simpleModel(imgShape), createHarlowModel(imgShape), inceptionV3Model(imgShape)]
-	modelList = [simpleModel(imgShape)]
+	
+	#these contain the functions to create the models, NOT the models themselves.
+	# ~ modelList = [simpleModel, createHarlowModel, inceptionV3Model]
+	modelList = [simpleModel]
 
 
 	#This loop can be segmented further. We could also keep track of the
@@ -134,8 +136,10 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	eachTestAcc = []
 	
 	for jay in range(numRepeats):
-		thisTestAcc, thisModel, thisOutputFolder = runOneTest( \
-				inputModel, os.path.join(thisBaseOutFolder, str(jay)), \
+		thisInputModel = inputModel(imgShapeTupple)
+		
+		thisTestAcc, thisOutModel, thisOutputFolder = runOneTest( \
+				thisInputModel, os.path.join(thisBaseOutFolder, str(jay)), \
 				train_ds, val_ds, test_ds, \
 				numEpochs, numPatience, imgShapeTupple, \
 				batchSize)
@@ -145,7 +149,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 		if thisTestAcc > theBestAccuracy:
 			theBestAccuracy = thisTestAcc
 			theRunWithTheBestAccuracy = jay
-			theBestModel = thisModel
+			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
 	
 	outString = "The acuracies for this run..." + "\n"
