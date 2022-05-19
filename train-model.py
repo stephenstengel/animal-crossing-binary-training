@@ -117,15 +117,17 @@ def main(args):
 		theBestSavedModelFolder = "" #might not need this if I use the lists.
 		#akshually if we save to disk each time we can save ram.
 		
+		eachTestAcc = []
+		
 		for jay in range(REPEATS):
 			thisTestAcc, thisModel, thisOutputFolder = runOneTest( \
 					modelList[i], os.path.join(thisBaseOutFolder, str(jay)), \
 					train_ds, val_ds, test_ds, \
 					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
 					batchSize)
-			print("Wow! we made it through!")
-			print("thisTestAcc: " + str(thisTestAcc))
-			print("thisModel: " + str(thisModel))
+			
+			eachTestAcc.append(thisTestAcc)
+			
 			# ~ print("you are made it!")
 			# ~ exit(201)
 			
@@ -135,8 +137,13 @@ def main(args):
 				theBestModel = thisModel
 				theBestSavedModelFolder = thisOutputFolder
 		
-		print("The best saved model is in folder: ", end="")
-		print( theBestSavedModelFolder )
+		outString = "The acuracies for this run..." + "\n"
+		for thingy in eachTestAcc:
+			outString += str(round(thingy, 4)) + "\n"
+		outString += "The best saved model is in folder: " + theBestSavedModelFolder
+		print(outString)
+		printStringToFile("overall-output.txt" ,outString, "w")
+		
 		
 		print("YAAAAY!")
 				
