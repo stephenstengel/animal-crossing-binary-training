@@ -160,7 +160,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 		outString += str(round(thingy, 4)) + "\n"
 	outString += "The best saved model is in folder: " + theBestSavedModelFolder
 	print(outString)
-	printStringToFile("overall-output.txt" , outString, "w")
+	printStringToFile(os.path.join(thisBaseOutFolder, "overall-output.txt") , outString, "w")
 
 
 def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
