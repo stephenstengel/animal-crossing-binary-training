@@ -115,12 +115,34 @@ def main(args):
 		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
 		##Below here in this function can just be another function.
 		
-		runManyTests(modelBaseFolders[i], REPEATS, modelList[i], \
-				train_ds, val_ds, test_ds, numEpochs, numPatience, imgShape, batchSize)
+		overallBestAcc = -math.inf
+		overallBestModel = None
+		overallBestFolder = ""
+		eachModelAcc = []
+		
+		thisAcc, thisModel, thisFolder = \
+				runManyTests(
+						modelBaseFolders[i], REPEATS, modelList[i], \
+						train_ds, val_ds, test_ds, numEpochs, \
+						numPatience, imgShape, batchSize)
+		eachModelAcc.append(thisAcc)
+		if thisAcc > overallBestAcc:
+			overallBestAcc = thisAcc
+			overallBestModel = thisModel
+			overallBestFolder = thisFolder
+		else:
+			del thisModel
 	
+	
+	outString = "The best accuracies among the models..." + "\n"
+	for thingy in eachModelAcc:
+		outString += str(round(thingy, 4)) + "\n"
+	outString += "The overall best saved model is in folder: " + overallBestFolder
+	print(outString)
+	printStringToFile(os.path.join(timeStr, "overall-output.txt") , outString, "w")
+		
+		
 	print("A winner is YOU!")
-		
-		
 
 	return 0
 
@@ -153,14 +175,16 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 			theBestModel = thisOutModel
 			theBestSavedModelFolder = thisOutputFolder
 		else:
-			del thisInputModel #To save a bit of space faster.
+			del thisInputModel #To save a bit of ram faster.
 	
-	outString = "The acuracies for this run..." + "\n"
+	outString = "The accuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
 		outString += str(round(thingy, 4)) + "\n"
 	outString += "The best saved model is in folder: " + theBestSavedModelFolder
 	print(outString)
-	printStringToFile(os.path.join(thisBaseOutFolder, "overall-output.txt") , outString, "w")
+	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
+	
+	return theBestAccuracy, theBestModel, theBestSavedModelFolder
 
 
 def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
