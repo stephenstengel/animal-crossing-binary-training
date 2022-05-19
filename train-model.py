@@ -234,8 +234,16 @@ def reloadImageDatasets(loaderPath, scriptName):
 	
 	loaderPID = None
 	
-	os.system(MY_PYTHON_STRING + " " + scriptName)
-	
+	# ~ os.system(MY_PYTHON_STRING + " " + scriptName)
+
+	if sys.platform.startswith("win"):
+		os.system("powershell" + " " + MY_PYTHON_STRING + " " + scriptName)
+	elif sys.platform.startswith("linux"):
+		os.system(MY_PYTHON_STRING + " " + scriptName)
+	else:
+		print("MASSIVE ERROR LOL!")
+		exit(-4)
+
 	# ~ loaderPID = subprocess.Popen([MY_PYTHON_STRING, scriptName])
 	# ~ if loaderPID is not None:
 		# ~ loaderPID.wait()
