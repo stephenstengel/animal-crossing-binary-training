@@ -15,6 +15,7 @@ import numpy as np
 import shutil
 import time
 import cv2
+import math
 
 from tqdm import tqdm
 
@@ -68,6 +69,7 @@ BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 EPOCHS = 100
 PATIENCE = 10
+REPEATS = 5
 
 
 def main(args):
@@ -106,36 +108,57 @@ def main(args):
 	# something like performExperiment -> performKfolds -> contents of this for loop.
 	for i in range(len(modelList)):
 		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
-		
-		thisModel = modelList[i]
-		thisModel.summary()
-		thisOutputFolder = modelBaseFolders[i]
-		print("Training model: " + thisOutputFolder)
-		thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
-		thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
-		foldersForThisModel = [thisOutputFolder, thisCheckpointFolder, thisMissclassifiedFolder]
-		makeDirectories(foldersForThisModel)
-		
 		saveCopyOfSourceCode(thisOutputFolder)
 		
-		myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs, numPatience)
-		print("Creating graphs of training history...")
-		strAcc, strLoss = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
-  
-  		#workin on this.
-		stringToPrint = "Epochs: " + str(numEpochs) + "\n"
-		stringToPrint += "Image Shape: " + str(IMG_SHAPE_TUPPLE) + "\n\n"
-		stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
-		stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
-		stringToPrint += strAcc + "\n"
-		stringToPrint += strLoss + "\n"
+		theRunWithTheBestAccuracy = -1
+		theBestAccuracy = -math.inf
+		theBestSavedModel = None
+		theBestSavedModelFolder = "" #might not need this if I use the lists.
 		
-		statFileName = os.path.join(thisOutputFolder, "stats.txt")
-		printStringToFile(statFileName, stringToPrint, "w")
-		print(stringToPrint)
+		for j in range(REPEATS):
+			thisTestAcc, thisModel = runOneTest( \
+					i, modelList, modelBaseFolders, \
+					train_ds, val_ds, test_ds, \
+					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
+					batchSize)
+			print("Wow! we made it through!")
+			print("thisTestAcc: " + str(thisTestAcc))
+			print("thisModel: " + str(thisModel))
+			print("halting!")
+			exit(30)
 
 	return 0
 
+
+def runOneTest():
+	thisModel = modelList[i]
+	thisModel.summary()
+	thisOutputFolder = modelBaseFolders[i]
+	print("Training model: " + thisOutputFolder)
+	thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
+	thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
+	foldersForThisModel = [thisOutputFolder, thisCheckpointFolder, thisMissclassifiedFolder]
+	makeDirectories(foldersForThisModel)
+	
+	myHistory = trainModel(thisModel, train_ds, val_ds, thisCheckpointFolder, numEpochs, numPatience)
+	print("Creating graphs of training history...")
+	#thisTestAcc is the same as strAcc but in unrounded float form.
+	strAcc, strLoss, thisTestAcc = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
+
+	#workin on this.
+	stringToPrint = "Epochs: " + str(numEpochs) + "\n"
+	stringToPrint += "Image Shape: " + str(imgShapeTupple) + "\n\n"
+	stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
+	stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
+	stringToPrint += strAcc + "\n"
+	stringToPrint += strLoss + "\n"
+	
+	statFileName = os.path.join(thisOutputFolder, "stats.txt")
+	printStringToFile(statFileName, stringToPrint, "w")
+	print(stringToPrint)
+	
+	return thisTestAcc, thisModel
+	
 
 #Reload the images from the dataset so that you can run another test with randomized images.
 def reloadImageDatasets(loaderPath, scriptName):
@@ -257,6 +280,8 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs, numPatience
 			validation_data = val_ds)
 
 
+#Returns caption strings for the graphs of the accuracy and loss
+## also returns the accuracy of the model as applied to the test dataset.
 def saveGraphs(model, myHistory, test_ds, outputFolder):
 	evalLoss, evalAccuracy = model.evaluate(test_ds)
 
@@ -293,7 +318,7 @@ def saveGraphs(model, myHistory, test_ds, outputFolder):
 	plt.savefig(os.path.join(outputFolder, "trainvalloss.png"))
 	plt.clf()
 	
-	return captionTextAcc, captionTextLoss
+	return captionTextAcc, captionTextLoss, evalAccuracy
 
 
 def getDatasets(trainDir, valDir, testDir):
