@@ -16,6 +16,7 @@ import shutil
 import time
 import cv2
 import math
+import subprocess
 
 from tqdm import tqdm
 
@@ -53,12 +54,12 @@ CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_STR
 
 TEST_PRINTING = False
 
-# ~ IMG_WIDTH = 40
-# ~ IMG_HEIGHT = 30
+IMG_WIDTH = 40
+IMG_HEIGHT = 30
 # ~ IMG_WIDTH = 100
 # ~ IMG_HEIGHT = 100
-IMG_WIDTH = 200
-IMG_HEIGHT = 150
+# ~ IMG_WIDTH = 200
+# ~ IMG_HEIGHT = 150
 # ~ IMG_WIDTH = 400
 # ~ IMG_HEIGHT = 300
 # ~ IMG_WIDTH = 300
@@ -67,11 +68,12 @@ IMG_CHANNELS = 3
 
 IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
-BATCH_SIZE = 8	#This is also set in the image loader. They must match.
+# ~ BATCH_SIZE = 8	#This is also set in the image loader. They must match.
+BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
-EPOCHS = 200
-# ~ EPOCHS = 2
-PATIENCE = 13
+# ~ EPOCHS = 100
+EPOCHS = 2
+PATIENCE = 10
 REPEATS = 5
 
 
@@ -225,9 +227,21 @@ def reloadImageDatasets(loaderPath, scriptName):
 	startDirectory = os.getcwd()
 	os.chdir(loaderPath)
 	
-	#Some platforms use different names for python3. It could be python or py as well! ##
-	loadCommand = "python3  " + scriptName
-	runSystemCommand(loadCommand)
+	loaderPID = None
+	
+	## I think that the specific python name string should be in the args list from main.
+	if sys.platform.startswith("win"):
+		loaderPID = subprocess.Popen(["wsl", "python3", scriptName])
+	elif sys.platform.startswith("linux"):
+		loaderPID = subprocess.Popen(["python3", scriptName])
+	else:
+		print("MASSIVE ERROR LOL!")
+		exit(-4)
+	
+	if loaderPID is not None:
+		loaderPID.wait()
+	else:
+		print("MASSIVE ERROR LOL!")
 	
 	os.chdir(startDirectory)
 
