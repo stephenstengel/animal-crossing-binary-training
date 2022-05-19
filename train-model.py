@@ -134,7 +134,8 @@ def main(args):
 				runManyTests(
 						modelBaseFolders[i], REPEATS, modelList[i], \
 						train_ds, val_ds, test_ds, numEpochs, \
-						numPatience, imgShape, batchSize, LOADER_DIRECTORY)
+						numPatience, imgShape, batchSize, LOADER_DIRECTORY,
+						overallBestCheckpointFolder)
 		eachModelAcc.append(thisAcc)
 		if thisAcc > overallBestAcc:
 			overallBestAcc = thisAcc
@@ -163,7 +164,7 @@ def main(args):
 	return 0
 
 
-def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory):
+def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory, overallBestCheckpointFolder):
 	saveCopyOfSourceCode(thisBaseOutFolder)
 	
 	theRunWithTheBestAccuracy = -1
@@ -171,7 +172,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	theBestModel = None
 	theBestSavedModelFolder = "" #might not need this if I use the lists.
 	#akshually if we save to disk each time we can save ram.
-	theBestCheckpointFolder = ""
+	theBestCheckpointFolder = overallBestCheckpointFolder
 	
 	eachTestAcc = []
 	
