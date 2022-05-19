@@ -214,7 +214,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
 	thisModel.summary()
 	print("Training model: " + thisOutputFolder)
-	thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
+	thisCheckpointFolder = os.path.abspath(os.path.join(thisOutputFolder, "checkpoint"))
 	thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
 	foldersForThisModel = [thisOutputFolder, thisCheckpointFolder, thisMissclassifiedFolder]
 	makeDirectories(foldersForThisModel)
