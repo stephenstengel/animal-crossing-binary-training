@@ -116,24 +116,28 @@ def main(args):
 		theBestSavedModel = None
 		theBestSavedModelFolder = "" #might not need this if I use the lists.
 		
-		for j in range(REPEATS):
+		for jay in range(REPEATS):
 			thisTestAcc, thisModel = runOneTest( \
-					i, modelList[i], modelBaseFolders[i], \
+					modelList[i], os.path.join(modelBaseFolders[i], jay), \
 					train_ds, val_ds, test_ds, \
 					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
 					batchSize)
 			print("Wow! we made it through!")
 			print("thisTestAcc: " + str(thisTestAcc))
 			print("thisModel: " + str(thisModel))
-			print("halting!")
-			exit(30)
+			print("you are made it!")
+			exit(201)
+			
+			if thisTestAcc > theBestAccuracy:
+				theBestAccuracy = thisTestAcc
+				theRunWithTheBestAccuracy = j
+				
 
 	return 0
 
 
-def runOneTest(i, thisModel, modelBaseFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
+def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
 	thisModel.summary()
-	thisOutputFolder = os.path.join(modelBaseFolder, str(i)) #a numbered folder for this run
 	print("Training model: " + thisOutputFolder)
 	thisCheckpointFolder = os.path.join(thisOutputFolder, "checkpoint")
 	thisMissclassifiedFolder = os.path.join(thisOutputFolder, "misclassifed-images")
