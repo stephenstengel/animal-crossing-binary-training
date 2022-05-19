@@ -67,7 +67,8 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
-EPOCHS = 100
+# ~ EPOCHS = 100
+EPOCHS = 2
 PATIENCE = 10
 REPEATS = 5
 
@@ -103,52 +104,56 @@ def main(args):
 	# ~ modelList = [simpleModel(shape), createHarlowModel(shape), inceptionV3Model(shape)]
 	modelList = [simpleModel(shape)]
 
-	# This for loop can be compartmentalized into helper functions.
-	# There will be one wrapper function to perform k-folds
-	# something like performExperiment -> performKfolds -> contents of this for loop.
+
+	#This loop can be segmented further. We could also keep track of the
+	#best accuracy from each type of model. Then printout which model
+	#gave the best accuracy overall and say where the model is saved.
 	for i in range(len(modelList)):
 		reloadImageDatasets(LOADER_DIRECTORY, "load-dataset.py")
-		thisBaseOutFolder = modelBaseFolders[i]
-		saveCopyOfSourceCode(thisBaseOutFolder)
+		##Below here in this function can just be another function.
 		
-		theRunWithTheBestAccuracy = -1
-		theBestAccuracy = -math.inf
-		theBestModel = None
-		theBestSavedModelFolder = "" #might not need this if I use the lists.
-		#akshually if we save to disk each time we can save ram.
-		
-		eachTestAcc = []
-		
-		for jay in range(REPEATS):
-			thisTestAcc, thisModel, thisOutputFolder = runOneTest( \
-					modelList[i], os.path.join(thisBaseOutFolder, str(jay)), \
-					train_ds, val_ds, test_ds, \
-					numEpochs, numPatience, IMG_SHAPE_TUPPLE, \
-					batchSize)
-			
-			eachTestAcc.append(thisTestAcc)
-			
-			# ~ print("you are made it!")
-			# ~ exit(201)
-			
-			if thisTestAcc > theBestAccuracy:
-				theBestAccuracy = thisTestAcc
-				theRunWithTheBestAccuracy = jay
-				theBestModel = thisModel
-				theBestSavedModelFolder = thisOutputFolder
-		
-		outString = "The acuracies for this run..." + "\n"
-		for thingy in eachTestAcc:
-			outString += str(round(thingy, 4)) + "\n"
-		outString += "The best saved model is in folder: " + theBestSavedModelFolder
-		print(outString)
-		printStringToFile("overall-output.txt" ,outString, "w")
+		runManyTests(modelBaseFolders[i], REPEATS, modelList[i], \
+				train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize)
+	
+	print("A winner is YOU!")
 		
 		
-		print("YAAAAY!")
-				
 
 	return 0
+
+
+def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
+	saveCopyOfSourceCode(thisBaseOutFolder)
+	
+	theRunWithTheBestAccuracy = -1
+	theBestAccuracy = -math.inf
+	theBestModel = None
+	theBestSavedModelFolder = "" #might not need this if I use the lists.
+	#akshually if we save to disk each time we can save ram.
+	
+	eachTestAcc = []
+	
+	for jay in range(numRepeats):
+		thisTestAcc, thisModel, thisOutputFolder = runOneTest( \
+				inputModel, os.path.join(thisBaseOutFolder, str(jay)), \
+				train_ds, val_ds, test_ds, \
+				numEpochs, numPatience, imgShapeTupple, \
+				batchSize)
+		
+		eachTestAcc.append(thisTestAcc)
+		
+		if thisTestAcc > theBestAccuracy:
+			theBestAccuracy = thisTestAcc
+			theRunWithTheBestAccuracy = jay
+			theBestModel = thisModel
+			theBestSavedModelFolder = thisOutputFolder
+	
+	outString = "The acuracies for this run..." + "\n"
+	for thingy in eachTestAcc:
+		outString += str(round(thingy, 4)) + "\n"
+	outString += "The best saved model is in folder: " + theBestSavedModelFolder
+	print(outString)
+	printStringToFile("overall-output.txt" , outString, "w")
 
 
 def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize):
