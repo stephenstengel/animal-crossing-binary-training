@@ -16,13 +16,13 @@ import shutil
 import time
 import cv2
 import math
-import subprocess
 import gc
 
 from tqdm import tqdm
 
-from sklearn.metrics import confusion_matrix, classification_report
-from models import createHarlowModel, simpleModel, inceptionV3Model, mediumModel
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
+from sklearn.model_selection import KFold
+from models import createHarlowModel, simpleModel, inceptionV3Model, mediumModel, inceptionResNetModel
 from keras import callbacks
 
 print("Done!")
@@ -59,10 +59,10 @@ TEST_PRINTING = False
 # ~ IMG_HEIGHT = 30
 # ~ IMG_WIDTH = 100
 # ~ IMG_HEIGHT = 100
-IMG_WIDTH = 200
-IMG_HEIGHT = 150
-# ~ IMG_WIDTH = 400
-# ~ IMG_HEIGHT = 300
+# ~ IMG_WIDTH = 200
+# ~ IMG_HEIGHT = 150
+IMG_WIDTH = 400
+IMG_HEIGHT = 300
 # ~ IMG_WIDTH = 300
 # ~ IMG_HEIGHT = 225
 IMG_CHANNELS = 3
@@ -73,8 +73,8 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 # ~ EPOCHS = 100
-EPOCHS = 2
-PATIENCE = 10
+EPOCHS = 10
+PATIENCE = 2
 REPEATS = 5
 
 #how to get programatically? 
@@ -97,17 +97,10 @@ def main(args):
 	harlowFolder = os.path.join(timeStr, "harlow")
 	inceptionFolder = os.path.join(timeStr, "incpetionV3")
 	mediumFolder = os.path.join(timeStr, "medium")
-	modelBaseFolders = [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	inceptionResNetFolder = os.path.join(timeStr, "inceptionResNet")
+	modelBaseFolders = [inceptionResNetFolder]# [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
 	# ~ modelBaseFolders = [mediumFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
-	
-	# train_ds is for training the model.
-	# val_ds is for validation during training.
-	# test_ds is a dataset of unmodified images for testing the model after training.
-	train_ds, val_ds, test_ds = getDatasets(TRAIN_DIRECTORY, VAL_DIRECTORY, TEST_DIRECTORY)
-	
-	if TEST_PRINTING:
-		printSample(test_ds)
 	
 	imgShape = IMG_SHAPE_TUPPLE
 	batchSize = BATCH_SIZE
@@ -115,7 +108,7 @@ def main(args):
 	numPatience = PATIENCE
 	
 	#these contain the functions to create the models, NOT the models themselves.
-	modelList = [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
+	modelList = [inceptionResNetModel]# [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
 	# ~ modelList = [simpleModel, mediumModel]
 	# ~ modelList = [mediumModel]
 
@@ -133,8 +126,7 @@ def main(args):
 		thisAcc, thisModel, thisFolder, thisCheckpointFolder = \
 				runManyTests(
 						modelBaseFolders[i], REPEATS, modelList[i], \
-						train_ds, val_ds, test_ds, numEpochs, \
-						numPatience, imgShape, batchSize, LOADER_DIRECTORY,
+						numEpochs, numPatience, imgShape, batchSize, LOADER_DIRECTORY, \
 						overallBestCheckpointFolder)
 		eachModelAcc.append(thisAcc)
 		if thisAcc > overallBestAcc:
@@ -164,7 +156,7 @@ def main(args):
 	return 0
 
 
-def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, test_ds, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory, overallBestCheckpointFolder):
+def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory, overallBestCheckpointFolder):
 	saveCopyOfSourceCode(thisBaseOutFolder)
 	
 	theRunWithTheBestAccuracy = -1
@@ -177,7 +169,12 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, train_ds, val_ds, te
 	eachTestAcc = []
 	
 	for jay in range(numRepeats):
-		reloadImageDatasets(loaderScriptDirectory, "load-dataset.py") ## this function could be replaced with a shuffle function. If we had one big dataset file, we could shuffle that instead of reloading the images every time. But this works.
+		reloadImageDatasets(loaderScriptDirectory, "load-dataset.py") # this function could be replaced with a shuffle function. If we had one big dataset file, we could shuffle that instead of reloading the images every time. But this works.
+		train_ds, val_ds, test_ds = getDatasets(TRAIN_DIRECTORY, VAL_DIRECTORY, TEST_DIRECTORY)
+  
+		if TEST_PRINTING:
+			printSample(test_ds)
+  
 		thisInputModel = inputModel(imgShapeTupple)
 		
 		thisTestAcc, thisOutModel, thisOutputFolder, thisCheckpointFolder = runOneTest( \
@@ -296,10 +293,16 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder, batchSize
 	outString = "Confusion Matrix:\n"
 	outString += "Bobcat(0), Coyote(1), Deer(2), Elk(3), Human(4), Not Interesting(5), Raccoon(6), Weasel(7)\n"
 	
-	cf = str(confusion_matrix(actual_test_labels, p_test_labels))
+	cf = confusion_matrix(actual_test_labels, p_test_labels)
 	cf_report = classification_report(actual_test_labels, p_test_labels, digits=4)
+	cf_plot = ConfusionMatrixDisplay(confusion_matrix=cf, display_labels=CLASS_NAMES_LIST_STR)
+	cf_plot.plot(cmap=plt.cm.Blues, xticks_rotation=45)
+	plt.tight_layout()
+	plt.savefig(os.path.join(outputFolder, "confusion_matrix.png"))
+	plt.clf()
+	
  
-	outString += cf + "\n" + cf_report + "\n"	
+	outString += str(cf) + "\n" + cf_report + "\n"	
 	
 	#Make a pretty chart of these images?
 	
@@ -366,8 +369,8 @@ def trainModel(model, train_ds, val_ds, checkpointFolder, numEpochs, numPatience
 			validation_data = val_ds)
 
 
-#Returns caption strings for the graphs of the accuracy and loss
-## also returns the accuracy of the model as applied to the test dataset.
+# Returns caption strings for the graphs of the accuracy and loss
+# also returns the accuracy of the model as applied to the test dataset.
 def saveGraphs(model, myHistory, test_ds, outputFolder):
 	evalLoss, evalAccuracy = model.evaluate(test_ds)
 
@@ -475,23 +478,3 @@ def getPredictedLabels(testScores):
 if __name__ == '__main__':
 	import sys
 	sys.exit(main(sys.argv))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,4 @@
+The best accuracies among the models...
+0.8874
+The overall best saved model is in folder: 2022-5-23-22-14-8\inceptionResNet\2
+It has an accuracy of: 0.8874

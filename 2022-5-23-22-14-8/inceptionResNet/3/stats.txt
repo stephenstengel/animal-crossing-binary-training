@@ -1,0 +1,31 @@
+Epochs: 10
+Image Shape: (300, 400, 3)
+
+Confusion Matrix:
+Bobcat(0), Coyote(1), Deer(2), Elk(3), Human(4), Not Interesting(5), Raccoon(6), Weasel(7)
+[[445   0   0   0   0   0   0   0]
+ [ 47 367   0   5   0   0  26   0]
+ [ 12  24 258  90  52   0   9   0]
+ [ 16   8  33 337   2   0  46   3]
+ [  0   6  90  72 259   0  18   0]
+ [  0   3   0  48   0 394   0   0]
+ [ 18   0   0   0   0   5 422   0]
+ [  0   0   0   0   0   0   0 445]]
+              precision    recall  f1-score   support
+
+           0     0.8271    1.0000    0.9054       445
+           1     0.8995    0.8247    0.8605       445
+           2     0.6772    0.5798    0.6247       445
+           3     0.6105    0.7573    0.6760       445
+           4     0.8275    0.5820    0.6834       445
+           5     0.9875    0.8854    0.9336       445
+           6     0.8100    0.9483    0.8737       445
+           7     0.9933    1.0000    0.9966       445
+
+    accuracy                         0.8222      3560
+   macro avg     0.8291    0.8222    0.8192      3560
+weighted avg     0.8291    0.8222    0.8192      3560
+
+Accuracy and loss according to tensorflow model.evaluate():
+Accuracy on test data: 0.8222
+Loss on test data: 0.5783
