@@ -21,8 +21,7 @@ import gc
 from tqdm import tqdm
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
-from sklearn.model_selection import KFold
-from models import createHarlowModel, simpleModel, inceptionV3Model, mediumModel, inceptionResNetModel
+from models import inceptionResNetModel
 from keras import callbacks
 
 print("Done!")
@@ -73,11 +72,13 @@ IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
 BATCH_SIZE = 32	#This is also set in the image loader. They must match.
 # ~ EPOCHS = 20
 # ~ EPOCHS = 100
-EPOCHS = 10
+EPOCHS = 50
 PATIENCE = 2
-REPEATS = 5
+REPEATS = 50
 
-#how to get programatically? 
+CLASS_NUMBER = 8
+
+# how to get programatically? 
 MY_PYTHON_STRING = "python"
 # ~ MY_PYTHON_STRING = "python3"
 # ~ MY_PYTHON_STRING = "py"
@@ -93,12 +94,8 @@ def main(args):
 	timeStr = os.path.normpath(timeStr)
 	
 	# Folders to save model tests
-	simpleFolder = os.path.join(timeStr, "simple")
-	harlowFolder = os.path.join(timeStr, "harlow")
-	inceptionFolder = os.path.join(timeStr, "incpetionV3")
-	mediumFolder = os.path.join(timeStr, "medium")
 	inceptionResNetFolder = os.path.join(timeStr, "inceptionResNet")
-	modelBaseFolders = [inceptionResNetFolder]# [simpleFolder, mediumFolder, harlowFolder, inceptionFolder] #Same order as the modelList below!
+	modelBaseFolders = [inceptionResNetFolder]#Same order as the modelList below!
 	# ~ modelBaseFolders = [mediumFolder] #Same order as the modelList below!
 	makeDirectories(modelBaseFolders)
 	
@@ -108,10 +105,7 @@ def main(args):
 	numPatience = PATIENCE
 	
 	#these contain the functions to create the models, NOT the models themselves.
-	modelList = [inceptionResNetModel]# [simpleModel, mediumModel, createHarlowModel, inceptionV3Model]
-	# ~ modelList = [simpleModel, mediumModel]
-	# ~ modelList = [mediumModel]
-
+	modelList = [inceptionResNetModel]
 
 	#This loop can be segmented further. We could also keep track of the
 	#best accuracy from each type of model. Then printout which model
@@ -167,6 +161,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatien
 	theBestCheckpointFolder = overallBestCheckpointFolder
 	
 	eachTestAcc = []
+	eachTestCM = []
 	
 	for jay in range(numRepeats):
 		reloadImageDatasets(loaderScriptDirectory, "load-dataset.py") # this function could be replaced with a shuffle function. If we had one big dataset file, we could shuffle that instead of reloading the images every time. But this works.
@@ -177,13 +172,14 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatien
   
 		thisInputModel = inputModel(imgShapeTupple)
 		
-		thisTestAcc, thisOutModel, thisOutputFolder, thisCheckpointFolder = runOneTest( \
+		thisTestAcc, thisOutModel, thisOutputFolder, thisCheckpointFolder, thisCM = runOneTest( \
 				thisInputModel, os.path.join(thisBaseOutFolder, str(jay)), \
 				train_ds, val_ds, test_ds, \
 				numEpochs, numPatience, imgShapeTupple, \
 				batchSize)
 		
 		eachTestAcc.append(thisTestAcc)
+		eachTestCM.append(thisCM)
 		
 		if thisTestAcc > theBestAccuracy:
 			theBestAccuracy = thisTestAcc
@@ -198,11 +194,36 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatien
 			deleteDirectories([thisCheckpointFolder])
 		gc.collect()
 	
+	# average confusion matrix
+	eachTestCM = np.array(eachTestCM)
+	avgCM = np.zeros((CLASS_NUMBER, CLASS_NUMBER))
+	for cm in eachTestCM:
+		avgCM += cm
+    
+	for i in range(len(avgCM)):
+		avgCM[i] = [round((x / numRepeats), 1) for x in avgCM[i]]
+ 
+	cf_plot = ConfusionMatrixDisplay(confusion_matrix=avgCM, display_labels=CLASS_NAMES_LIST_STR)
+	cf_plot.plot(cmap=plt.cm.Blues, xticks_rotation=45, values_format='')
+	plt.tight_layout()
+	plt.savefig(os.path.join(thisBaseOutFolder, "average_confusion_matrix.png"))
+	plt.clf()
+ 
+	# get accurary per class
+	avgClassAcc = np.around(avgCM.diagonal() / avgCM.sum(axis=1), decimals=4)
+	
+	avgAcc = 0
 	outString = "The accuracies for this run..." + "\n"
 	for thingy in eachTestAcc:
 		outString += str(round(thingy, 4)) + "\n"
+		avgAcc += thingy
+	avgAcc = round((avgAcc / numRepeats), 4)
+
 	outString += "The best saved model is in folder: " + theBestSavedModelFolder + "\n"
-	outString += "It has an accuracy of: " + str(round(theBestAccuracy, 4)) + "\n"
+	outString += "It has an accuracy of: " + str(round(theBestAccuracy, 4)) + "\n\n"
+	outString += "Averages for " + str(numRepeats) + " tests:\nThe average accuracy was: " + str(avgAcc) + "\n"
+	outString += "The average class accuracies were:\nBobcat, Coyote, Deer, Elk, Human, Not Int, Raccoon, Weasel\n" 
+	outString += str(avgClassAcc) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
 	
@@ -221,11 +242,13 @@ def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs
 	print("Creating graphs of training history...")
 	#thisTestAcc is the same as strAcc but in unrounded float form.
 	strAcc, strLoss, thisTestAcc = saveGraphs(thisModel, myHistory, test_ds, thisOutputFolder)
+ 
+	CMandCR, cm= evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
 
 	#workin on this.
 	stringToPrint = "Epochs: " + str(numEpochs) + "\n"
 	stringToPrint += "Image Shape: " + str(imgShapeTupple) + "\n\n"
-	stringToPrint += evaluateLabels(test_ds, thisModel, thisOutputFolder, thisMissclassifiedFolder, batchSize)
+	stringToPrint += CMandCR
 	stringToPrint += "Accuracy and loss according to tensorflow model.evaluate():\n"
 	stringToPrint += strAcc + "\n"
 	stringToPrint += strLoss + "\n"
@@ -234,7 +257,7 @@ def runOneTest(thisModel, thisOutputFolder, train_ds, val_ds, test_ds, numEpochs
 	printStringToFile(statFileName, stringToPrint, "w")
 	print(stringToPrint)
 	
-	return thisTestAcc, thisModel, thisOutputFolder, thisCheckpointFolder
+	return thisTestAcc, thisModel, thisOutputFolder, thisCheckpointFolder, cm
 	
 
 #Reload the images from the dataset so that you can run another test with randomized images.
@@ -293,20 +316,20 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder, batchSize
 	outString = "Confusion Matrix:\n"
 	outString += "Bobcat(0), Coyote(1), Deer(2), Elk(3), Human(4), Not Interesting(5), Raccoon(6), Weasel(7)\n"
 	
-	cf = confusion_matrix(actual_test_labels, p_test_labels)
-	cf_report = classification_report(actual_test_labels, p_test_labels, digits=4)
-	cf_plot = ConfusionMatrixDisplay(confusion_matrix=cf, display_labels=CLASS_NAMES_LIST_STR)
-	cf_plot.plot(cmap=plt.cm.Blues, xticks_rotation=45)
+	cm = confusion_matrix(actual_test_labels, p_test_labels)
+	cm_report = classification_report(actual_test_labels, p_test_labels, digits=4)
+	cm_plot = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=CLASS_NAMES_LIST_STR)
+	cm_plot.plot(cmap=plt.cm.Blues, xticks_rotation=45)
 	plt.tight_layout()
 	plt.savefig(os.path.join(outputFolder, "confusion_matrix.png"))
 	plt.clf()
 	
  
-	outString += str(cf) + "\n" + cf_report + "\n"	
+	outString += str(cm) + "\n" + cm_report + "\n"	
 	
 	#Make a pretty chart of these images?
 	
-	return outString
+	return outString, cm
 
 
 # Saves all missclassified images
