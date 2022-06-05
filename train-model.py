@@ -26,6 +26,28 @@ from keras import callbacks
 
 print("Done!")
 
+TEST_PRINTING = False
+
+IMG_WIDTH = 400
+IMG_HEIGHT = 300
+IMG_CHANNELS = 3
+
+IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
+
+BATCH_SIZE = 32	# This is also set in the image loader. They must match.
+EPOCHS = 50
+PATIENCE = 2
+REPEATS = 5
+
+# class number is 7 for combined deer elk
+# class number is 8 for all classes
+CLASS_NUMBER = 7
+
+# how to get programatically? 
+MY_PYTHON_STRING = "python"
+# ~ MY_PYTHON_STRING = "python3"
+# ~ MY_PYTHON_STRING = "py"
+
 LOADER_DIRECTORY = os.path.normpath("../animal-crossing-loader/")
 TRAIN_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "train")
 VAL_DIRECTORY = os.path.join(LOADER_DIRECTORY, "dataset", "val")
@@ -39,11 +61,21 @@ CLASS_HUMAN = 4
 CLASS_NOT_INTERESTING = 5
 CLASS_RACCOON = 6
 CLASS_WEASEL = 7
+CLASS_DEER_ELK = -1
+
+# if combined deer elk
+if CLASS_NUMBER == 7:
+	CLASS_DEER_ELK = 2
+	CLASS_HUMAN = 3
+	CLASS_NOT_INTERESTING = 4
+	CLASS_RACCOON = 5
+	CLASS_WEASEL = 6
 
 CLASS_BOBCAT_STRING = "bobcat"
 CLASS_COYOTE_STRING = "coyote"
 CLASS_DEER_STRING = "deer"
 CLASS_ELK_STRING = "elk"
+CLASS_DEER_ELK_STRING = "deer-elk"
 CLASS_HUMAN_STRING = "human"
 CLASS_RACCOON_STRING = "raccoon"
 CLASS_WEASEL_STRING = "weasel"
@@ -52,42 +84,13 @@ CLASS_NOT_INTERESTING_STRING = "not"
 CLASS_NAMES_LIST_INT = [CLASS_BOBCAT, CLASS_COYOTE, CLASS_DEER, CLASS_ELK, CLASS_HUMAN, CLASS_NOT_INTERESTING, CLASS_RACCOON, CLASS_WEASEL]
 CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_STRING, CLASS_ELK_STRING, CLASS_HUMAN_STRING, CLASS_NOT_INTERESTING_STRING, CLASS_RACCOON_STRING, CLASS_WEASEL_STRING]
 
-TEST_PRINTING = False
-
-# ~ IMG_WIDTH = 40
-# ~ IMG_HEIGHT = 30
-# ~ IMG_WIDTH = 100
-# ~ IMG_HEIGHT = 100
-# ~ IMG_WIDTH = 200
-# ~ IMG_HEIGHT = 150
-IMG_WIDTH = 400
-IMG_HEIGHT = 300
-# ~ IMG_WIDTH = 300
-# ~ IMG_HEIGHT = 225
-IMG_CHANNELS = 3
-
-IMG_SHAPE_TUPPLE = (IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS)
-
-# ~ BATCH_SIZE = 8	#This is also set in the image loader. They must match.
-BATCH_SIZE = 32	#This is also set in the image loader. They must match.
-# ~ EPOCHS = 20
-# ~ EPOCHS = 100
-EPOCHS = 50
-PATIENCE = 2
-REPEATS = 50
-
-CLASS_NUMBER = 8
-
-# how to get programatically? 
-MY_PYTHON_STRING = "python"
-# ~ MY_PYTHON_STRING = "python3"
-# ~ MY_PYTHON_STRING = "py"
+# if combined deer-elk
+if CLASS_NUMBER == 7:
+	CLASS_NAMES_LIST_INT = [CLASS_BOBCAT, CLASS_COYOTE, CLASS_DEER_ELK, CLASS_HUMAN, CLASS_NOT_INTERESTING, CLASS_RACCOON, CLASS_WEASEL]
+	CLASS_NAMES_LIST_STR = [CLASS_BOBCAT_STRING, CLASS_COYOTE_STRING, CLASS_DEER_ELK_STRING, CLASS_HUMAN_STRING, CLASS_NOT_INTERESTING_STRING, CLASS_RACCOON_STRING, CLASS_WEASEL_STRING]
 
 
 def main(args):
-	listOfFoldersToDELETE = []
-	deleteDirectories(listOfFoldersToDELETE)
-	
 	#base folder for this run
 	ts = time.localtime()
 	timeStr = "./%d-%d-%d-%d-%d-%d/" % (ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec)
@@ -95,11 +98,11 @@ def main(args):
 	
 	# Folders to save model tests
 	inceptionResNetFolder = os.path.join(timeStr, "inceptionResNet")
-	modelBaseFolders = [inceptionResNetFolder]#Same order as the modelList below!
-	# ~ modelBaseFolders = [mediumFolder] #Same order as the modelList below!
+	modelBaseFolders = [inceptionResNetFolder]
 	makeDirectories(modelBaseFolders)
 	
 	imgShape = IMG_SHAPE_TUPPLE
+	classNumber = CLASS_NUMBER
 	batchSize = BATCH_SIZE
 	numEpochs = EPOCHS
 	numPatience = PATIENCE
@@ -120,8 +123,8 @@ def main(args):
 		thisAcc, thisModel, thisFolder, thisCheckpointFolder = \
 				runManyTests(
 						modelBaseFolders[i], REPEATS, modelList[i], \
-						numEpochs, numPatience, imgShape, batchSize, LOADER_DIRECTORY, \
-						overallBestCheckpointFolder)
+						numEpochs, numPatience, imgShape, classNumber, batchSize, \
+						LOADER_DIRECTORY, overallBestCheckpointFolder)
 		eachModelAcc.append(thisAcc)
 		if thisAcc > overallBestAcc:
 			overallBestAcc = thisAcc
@@ -150,14 +153,13 @@ def main(args):
 	return 0
 
 
-def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatience, imgShapeTupple, batchSize, loaderScriptDirectory, overallBestCheckpointFolder):
+def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatience, imgShapeTupple, classNumber, batchSize, loaderScriptDirectory, overallBestCheckpointFolder):
 	saveCopyOfSourceCode(thisBaseOutFolder)
 	
-	theRunWithTheBestAccuracy = -1
 	theBestAccuracy = -math.inf
 	theBestModel = None
 	theBestSavedModelFolder = "" #might not need this if I use the lists.
-	#akshually if we save to disk each time we can save ram.
+	#actually if we save to disk each time we can save ram.
 	theBestCheckpointFolder = overallBestCheckpointFolder
 	
 	eachTestAcc = []
@@ -170,7 +172,7 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatien
 		if TEST_PRINTING:
 			printSample(test_ds)
   
-		thisInputModel = inputModel(imgShapeTupple)
+		thisInputModel = inputModel(imgShapeTupple, classNumber)
 		
 		thisTestAcc, thisOutModel, thisOutputFolder, thisCheckpointFolder, thisCM = runOneTest( \
 				thisInputModel, os.path.join(thisBaseOutFolder, str(jay)), \
@@ -222,8 +224,10 @@ def runManyTests(thisBaseOutFolder, numRepeats, inputModel, numEpochs, numPatien
 	outString += "The best saved model is in folder: " + theBestSavedModelFolder + "\n"
 	outString += "It has an accuracy of: " + str(round(theBestAccuracy, 4)) + "\n\n"
 	outString += "Averages for " + str(numRepeats) + " tests:\nThe average accuracy was: " + str(avgAcc) + "\n"
-	outString += "The average class accuracies were:\nBobcat, Coyote, Deer, Elk, Human, Not Int, Raccoon, Weasel\n" 
-	outString += str(avgClassAcc) + "\n"
+	outString += "The average class accuracies were:\n"
+	for cName in CLASS_NAMES_LIST_STR:
+		outString += cName + ", "
+	outString += "\n" + str(avgClassAcc) + "\n"
 	print(outString)
 	printStringToFile(os.path.join(thisBaseOutFolder, "repeats-output.txt") , outString, "w")
 	
@@ -314,7 +318,8 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder, batchSize
 	printLabelStuffToFile(testScores, actual_test_labels, p_test_labels, outputFolder) # debug function
 	
 	outString = "Confusion Matrix:\n"
-	outString += "Bobcat(0), Coyote(1), Deer(2), Elk(3), Human(4), Not Interesting(5), Raccoon(6), Weasel(7)\n"
+	for i in range(len(CLASS_NAMES_LIST_STR)):
+		outString += CLASS_NAMES_LIST_STR[i] + "(" + str(i) + "), "
 	
 	cm = confusion_matrix(actual_test_labels, p_test_labels)
 	cm_report = classification_report(actual_test_labels, p_test_labels, digits=4)
@@ -325,7 +330,7 @@ def evaluateLabels(test_ds, model, outputFolder, missclassifiedFolder, batchSize
 	plt.clf()
 	
  
-	outString += str(cm) + "\n" + cm_report + "\n"	
+	outString += "\n" + str(cm) + "\n" + cm_report + "\n"	
 	
 	#Make a pretty chart of these images?
 	

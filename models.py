@@ -9,11 +9,11 @@
 import tensorflow as tf
 from keras.models import Sequential
 from keras.applications.inception_resnet_v2 import InceptionResNetV2
-from keras.layers import MaxPooling2D, Flatten, Dense, Dropout, GlobalAveragePooling2D
+from keras.layers import Dense, GlobalAveragePooling2D
 from keras.losses import SparseCategoricalCrossentropy
 
 
-def inceptionResNetModel(shapeTupple):
+def inceptionResNetModel(shapeTupple, classNumber):
     base_model = InceptionResNetV2(
 		weights='imagenet',
 		include_top=False,
@@ -26,13 +26,7 @@ def inceptionResNetModel(shapeTupple):
 		[
 			base_model,
 			GlobalAveragePooling2D(),
-			#MaxPooling2D(pool_size=(2, 2), padding='same'),
-			#Dropout(0.1),
-			#Flatten(),
-			#Dense(64, activation='relu'),
-			#Dense(64, activation='relu'),
-			#Dense(32, activation='relu'),
-			Dense(8, activation='softmax')
+			Dense(classNumber, activation='softmax')
 		]
 	)
     
